@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<AutoInstall>
+	<Software>
+		<Item>
+			<Title>ConfigDBServer</Title>
+			<Description>Configuration DB Server</Description>
+			<AppFile>multiserver.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_DBServer64_8130111b1_ENU_windows.zip</URL>
+			<Version>8.1.300.03</Version>
+		</Item>
+		<Item>
+			<Title>ConfigServer</Title>
+			<Description>Multitenant Configuration Server</Description>
+			<AppFile>confserv.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_ConfigServerMT64_8130027b1_ENU_windows.zip</URL>
+			<Version>8.1.300.27</Version>
+		</Item>
+		<Item>
+			<Title>ConfigManager</Title>
+			<Description>Configuration Manager</Description>
+			<AppFile>sce.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\configuration_layer_interfaces\configmanager\windows</URL>
+			<Version>8.1.100.06</Version>
+		</Item>
+		<Item>
+			<Title>LCA</Title>
+			<Description>Local Control Agent</Description>
+			<AppFile>lca.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>8.1.300.14</Version>
+		</Item>
+		<Item>
+			<Title>Routing Msg Srv</Title>
+			<Description>Routing Message Server</Description>
+			<AppFile>essageServer.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>8.1.0.6</Version>
+		</Item>
+		<Item>
+			<Title>SCS</Title>
+			<Description>Solution Control Server</Description>
+			<AppFile>scs.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>8.1.300.14</Version>
+		</Item>
+		<Item>
+			<Title>SIP Server</Title>
+			<Description>Chicago SIP Server</Description>
+			<AppFile>sip_server.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>8.0.400.25</Version>
+		</Item>
+		<Item>
+			<Title>CCleaner</Title>
+			<Description>Cleaning and Tweaking</Description>
+			<AppFile>C:\Program Files\CCleaner\CCleaner64.exe</AppFile>
+			<URL>https://www.piriform.com/ccleaner/download/standard</URL>
+			<Version>1.3.1</Version>
+		</Item>
+		<Item>
+			<Title>Stat Server</Title>
+			<Description>Statistics Server</Description>
+			<AppFile>stat.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>16.1</Version>
+		</Item>
+		<Item>
+			<Title>Routing Stat Server</Title>
+			<Description>Routing Statistics Server</Description>
+			<AppFile>stat.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>0.9.15</Version>
+		</Item>
+		<Item>
+			<Title>UCS</Title>
+			<Description>Universal Contact Server</Description>
+			<AppFile>ucs.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>3.9</Version>
+		</Item>
+		<Item>
+			<Title>Ixn Server</Title>
+			<Description>Interaction Server</Description>
+			<AppFile>ixn.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>2.8.16</Version>
+		</Item>
+		<Item>
+			<Title>ESJ</Title>
+			<Description>Email Server Java</Description>
+			<AppFile>esj.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>2.0.3</Version>
+		</Item>
+		<Item>
+			<Title>SMS Server</Title>
+			<Description>Social Messaging Server</Description>
+			<AppFile>sms.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>0.91</Version>
+		</Item>
+		<Item>
+			<Title>Chat Server</Title>
+			<Description>Chat Server</Description>
+			<AppFile>chat.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>2.77a</Version>
+		</Item>
+		<Item>
+			<Title>Classification Serv</Title>
+			<Description>Classification Server</Description>
+			<AppFile>class.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>2.1.0</Version>
+		</Item>
+		<Item>
+			<Title>Co-Browsing Server</Title>
+			<Description>Co-Browsing Server</Description>
+			<AppFile>browser.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>0.10.5</Version>
+		</Item>
+		<Item>
+			<Title>Knowledge Manager</Title>
+			<Description>Knowledge Manager</Description>
+			<AppFile>knowledge.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>2.5.1</Version>
+		</Item>
+		<Item>
+			<Title>Training Server</Title>
+			<Description>Training Server</Description>
+			<AppFile>train.exe</AppFile>
+			<URL>https://www.keepassx.org/releases/2.0/KeePassX-2.0.dmg</URL>
+			<Version>2.0</Version>
+		</Item>
+		<Item>
+			<Title>Web API Server</Title>
+			<Description>Web API Server</Description>
+			<AppFile>web.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x642</URL>
+			<Version>3.17.0</Version>
+		</Item>
+		<Item>
+			<Title>Contact Server Manager</Title>
+			<Description>Contact Server Manager</Description>
+			<AppFile>contact.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>4.9.1</Version>
+		</Item>
+		<Item>
+			<Title>Cassandra</Title>
+			<Description>Cassanrda</Description>
+			<AppFile>cassandra.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>2.92</Version>
+		</Item>
+		<Item>
+			<Title>GIS</Title>
+			<Description>Genesys Integration Server</Description>
+			<AppFile>gis.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>1.0.4</Version>
+		</Item>
+		<Item>
+			<Title>GMS</Title>
+			<Description>Genesys Mobile Server</Description>
+			<AppFile>gms.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>1.6.2</Version>
+		</Item>
+		<Item>
+			<Title>Jetty</Title>
+			<Description>Jetty</Description>
+			<AppFile>jetty.exep</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>1.8</Version>
+		</Item>
+		<Item>
+			<Title>IWS</Title>
+			<Description>Interaction Workspace</Description>
+			<AppFile>iws.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>1.6</Version>
+		</Item>
+		<Item>
+			<Title>WDE</Title>
+			<Description>Workspace Desktop Edition</Description>
+			<AppFile>wde.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>9.3.2</Version>
+		</Item>
+		<Item>
+			<Title>URS</Title>
+			<Description>Universal Routing Server</Description>
+			<AppFile>urs.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>3103</Version>
+		</Item>
+		<Item>
+			<Title>GA</Title>
+			<Description>Genesys Administrator</Description>
+			<AppFile>ga.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
+			<Version>1.7.2</Version>
+		</Item>
+	</Software>
+</AutoInstall>

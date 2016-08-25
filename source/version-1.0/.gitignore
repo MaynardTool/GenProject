@@ -1,0 +1,10 @@
+*.pyc
+__pycache__
+__init__
+test*
+version.txt
+auto-install.py
+final.py
+office1.py
+remove_empty_folders.py
+/lib
