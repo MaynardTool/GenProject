@@ -559,7 +559,6 @@ def on_install_button_active(button, model, selectcount):
             # ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
             # config_installpath = os.path.join(installationDir, titleList[listItem])
 
-
             # for zip files, extract first
             if outFileName:
                 if outFileExt.lower() == 'zip':
@@ -574,7 +573,6 @@ def on_install_button_active(button, model, selectcount):
                         debugPrint("[Error] Could not extract %s" % outFileName)
                         appendToLog("[Error] Could not extract %s" % outFileName)
                         installError = "[Error] Could not extract %s" % outFileName
-
 
                     # If installation folder exists
                     if os.path.exists(outFile):
@@ -2215,10 +2213,10 @@ def get_version_number(filename):
 
 
 # Check if software is installed, TODO
-def checkInstall(subfolder, exe):
+def checkInstall(subfolder, ext):
     # subfolder = ConfigServer
     # software = confserv.exe
-    appPath = os.path.join(installationDir, subfolder, exe)
+    appPath = os.path.join(installationDir, subfolder, ext)
     # Check each item and if one is missing assume not installed
     if os.path.exists(appPath):
         isInstalled = True  # true if it is installed
@@ -2226,7 +2224,7 @@ def checkInstall(subfolder, exe):
         try:
             appInstVersion = get_version_number(appPath)
         except:
-            print('[Warning] Cannot get installed version of %s' % exe)
+            print('[Warning] Cannot get installed version of %s' % ext)
             appInstVersion = '0'
     else:
         isInstalled = False
