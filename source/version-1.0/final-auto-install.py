@@ -436,7 +436,7 @@ def refreshGui(widget):
      widget.update_idletasks()
 
 
-### THIS IS WORKING,  CONFIRMED NO PROBLEM WITH THIS FUNCTION###
+#THIS IS WORKING,  CONFIRMED NO PROBLEM WITH THIS FUNCTION#
 def extract_files(fname, outfile, item, proginc):
     currentHeaderProgress = headerProgPercent.get()
     # full path of zip file
@@ -2361,11 +2361,12 @@ if __name__ == "__main__":
     splashProgressPercent.set(20)
     refreshGui(splashWindow)
 
-
+    '''
+    Comment out since you know Bulacan net!
     if checkInternetConnection('http://www.google.com.ph') == False:
       # OFFLINE
       renderOfflineDialog()
-
+    '''
 
     # Read Config File if present TODO
     '''

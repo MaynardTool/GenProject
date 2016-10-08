@@ -125,7 +125,7 @@
 			<Description>Interaction Routing Designer</Description>
 			<AppFile>RoutingDesigner.exe</AppFile>
 			<URL>C:\Users\Administrator\Downloads\IP_IRDesigner_8130022b1_ENU_windows.zip</URL>
-			<Version>8.1.300.22</Version>
+			<Version>1.0.0.1</Version>
 		</Item>
 		<Item>
 			<Title>MediaServer</Title>
@@ -142,32 +142,137 @@
 			<Version>8.1.300.06</Version>
 		</Item>
 		<Item>
+			<Title>CapacityWizard</Title>
+			<Description>Resource Capacity Wizard</Description>
+			<AppFile>C:\Program Files\GCTI\CFGWizards\WizardManager.dll</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\StatServer\configuration_wizard_capacity</URL>
+			<Version>8.0.000.01</Version>
+		</Item>
+		<Item>
+			<Title>IxnDBServer</Title>
+			<Description>Interaction DB Serveer</Description>
+			<AppFile>multiserver.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\services_layer\dbserver\windows_x64</URL>
+			<Version>8.1.301.04</Version>
+		</Item>
+		<Item>
+			<Title>IxnServer</Title>
+			<Description>Interaction Server</Description>
+			<AppFile>interaction_server.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSInteractSrv64_8130010b1_ENU_windows.zip</URL>
+			<Version>8.1.300.10</Version>
+		</Item>
+		<Item>
+			<Title>WebAPI</Title>
+			<Description>Web API Server</Description>
+			<AppFile>C:\Program Files\GCTI\WebAPI\Web API Server\WebAPIServer\lms\webapiserverjava.lms</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSWebAPISrv_8120005b2_ENU_windows.zip</URL>
+			<Version>8.1.200.05</Version>
+		</Item>
+		<Item>
+			<Title>UCS</Title>
+			<Description>Universal Contact Server</Description>
+			<AppFile>ContactServerDriver.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSContSrv64_8130015b1_ENU_windows.zip</URL>
+			<Version>8.1.0.3</Version>
+		</Item>
+		<Item>
+			<Title>UCSManager</Title>
+			<Description>Universal Contact Server Manager</Description>
+			<AppFile>ucsmanager.bat</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSContSrvMngr_8130005b1_ENU_windows.zip</URL>
+			<Version>8.1.300.05</Version>
+		</Item>
+		<Item>
+			<Title>ESJ</Title>
+			<Description>Email Server Java</Description>
+			<AppFile>JavaEmailServerDriver.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSEmailSrvJava64_8130013b1_ENU_windows.zip</URL>
+			<Version>8.1.0.3</Version>
+		</Item>
+		<Item>
+			<Title>ChatServer</Title>
+			<Description>Chat Server</Description>
+			<AppFile>ChatServer.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSChatSrv64_8100141b1_ENU_windows.zip</URL>
+			<Version>8.1.001.41</Version>
+		</Item>
+		<Item>
+			<Title>ClassServer</Title>
+			<Description>Classification Server</Description>
+			<AppFile>ClfServerStarter.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSClassificSrv64_8130005b1_ENU_windows.zip</URL>
+			<Version>8.1.0.1</Version>
+		</Item>
+		<Item>
+			<Title>TrainServer</Title>
+			<Description>Training Server</Description>
+			<AppFile>TrnServerStarter.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSTrainingSrv64_8130004b1_ENU_windows.zip</URL>
+			<Version>8.1.0.1</Version>
+		</Item>
+		<Item>
+			<Title>KnowMngr</Title>
+			<Description>Knowledge Manager</Description>
+			<AppFile>KnowledgeManager.bat</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSKnowMngr_8130009b1_ENU_windows.zip</URL>
+			<Version>8.1.300.09</Version>
+		</Item>
+		<Item>
+			<Title>WebCallback</Title>
+			<Description>eServices Web Callback Application</Description>
+			<AppFile>C:\Program Files\GCTI\WebCallback\eServices Web Callback Application\CfgWizard_WebCallbackApp.dll</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSWebCallback_8020000b1_ENU_windows.zip</URL>
+			<Version>8.0.100.00</Version>
+		</Item>
+		<Item>
+			<Title>SMSServer</Title>
+			<Description>Short Message Service Server</Description>
+			<AppFile>SmsServerStarter.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSSMSSrv64_8130021b1_ENU_windows.zip</URL>
+			<Version>8.1.300.21</Version>
+		</Item>
+		<Item>
+			<Title>SocMesServer</Title>
+			<Description>Social Messaging Server</Description>
+			<AppFile>SmServerStarter.exe</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_SocialMsgSrv64_8510115b1_ENU_windows.zip</URL>
+			<Version>8.4.0.1</Version>
+		</Item>
+		<Item>
+			<Title>FBBusinessProcess</Title>
+			<Description>Business Process for Facebook</Description>
+			<AppFile>CfgWizard_FbDriverBp.dll</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSBuisProcFB64_8510100b1_ENU_windows.zip</URL>
+			<Version>8.5.101.00</Version>
+		</Item>
+		<Item>
+			<Title>FBCloudDriver</Title>
+			<Description>Genesys Cloud API Driver for Facebook</Description>
+			<AppFile>C:\Program Files\GCTI\SocMesServer\media-channel-drivers\channel-facebook\GSE_CL-853.0.6.jar</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_CloudAPIDrvFB64_8530064b1_ENU_windows.zip</URL>
+			<Version>8.5.300.64</Version>
+		</Item>
+		<Item>
+			<Title>TwBusinessProcess</Title>
+			<Description>Business Process for Twitter</Description>
+			<AppFile>CfgWizard_TtDriverBp.dll</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_eSBuisProcTw64_8510000b1_ENU_windows.zip</URL>
+			<Version>8.5.100.00</Version>
+		</Item>
+		<Item>
+			<Title>TwCloudDriver</Title>
+			<Description>Genesys Cloud API Driver for Twitter</Description>
+			<AppFile>C:\Program Files\GCTI\SocMesServer\media-channel-drivers\channel-twitter\GSE_CL-853.0.6.jar</AppFile>
+			<URL>C:\Users\Administrator\Downloads\IP_CloudAPIDrTw64_8530010b1_ENU_windows.zip</URL>
+			<Version>8.5.300.10</Version>
+		</Item>
+		<Item>
 			<Title>CCleaner</Title>
 			<Description>Cleaning and Tweaking</Description>
 			<AppFile>C:\Program Files\CCleaner\CCleaner64.exe</AppFile>
 			<URL>https://www.piriform.com/ccleaner/download/standard</URL>
 			<Version>1.3.1</Version>
-		</Item>
-		<Item>
-			<Title>ESJ</Title>
-			<Description>Email Server Java</Description>
-			<AppFile>esj.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
-			<Version>2.0.3</Version>
-		</Item>
-		<Item>
-			<Title>SMS Server</Title>
-			<Description>Social Messaging Server</Description>
-			<AppFile>sms.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
-			<Version>0.91</Version>
-		</Item>
-		<Item>
-			<Title>Chat Server</Title>
-			<Description>Chat Server</Description>
-			<AppFile>chat.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
-			<Version>2.77a</Version>
 		</Item>
 		<Item>
 			<Title>Classification Serv</Title>
@@ -182,13 +287,6 @@
 			<AppFile>browser.exe</AppFile>
 			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
 			<Version>0.10.5</Version>
-		</Item>
-		<Item>
-			<Title>Knowledge Manager</Title>
-			<Description>Knowledge Manager</Description>
-			<AppFile>knowledge.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
-			<Version>2.5.1</Version>
 		</Item>
 		<Item>
 			<Title>Training Server</Title>
