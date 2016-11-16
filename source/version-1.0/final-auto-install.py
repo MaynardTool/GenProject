@@ -12,7 +12,7 @@ import datetime
 import shutil
 import urllib2
 import webbrowser
-# import fcntl
+import fcntl
 import threading
 from threading import Thread, Event
 import platform
@@ -34,6 +34,11 @@ import _winreg
 import errno
 from cfgparse.compat import ConfigParser
 import fileinput
+
+# Genesys module
+import gcti_cfg
+from gcti_cfg import *
+
 
 class VerticalScrolledFrame(Frame):
     """
@@ -91,6 +96,30 @@ class VerticalScrolledFrame(Frame):
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
 
+# Genesys related
+def createAppFromCfgServer(cfg_host):
+    cfg_server = CServer((cfg_host, '2020', 'default', 'password'))
+    cfg_server.Open()
+    SetDefaultServer("ConfigServer", cfg_server)
+    cfg_app = CfgApplication()
+    cfg_app.name = 'MessageServer_Backup'  # to be taken from the list
+    cfg_app.version = '8.5.1'  # call get_version function
+    cfg_app.serverInfo = CfgServerInfo()
+    cfg_host = CfgHost('marcelo')  # to be taken from the user's machine
+    cfg_app.serverInfo.hostDBID = cfg_host.DBID
+    cfg_app.serverInfo.port = '8541'  # can be anything
+    cfg_app.type = CfgAppType.CFGMessageServer.val  # to be taken from the list or check common_enum.py CfgAppType
+    cfg_app.workDirectory = "."
+    cfg_app.commandLine = "."
+    cfg_app.commandLineArguments = '.'
+    cfg_app.userProperties = {}
+    cfg_app.userProperties["sml"] = {}
+    cfg_app.userProperties["sml"]["autorestart"] = "false"
+    cfg_app.Add()
+    if not cfg_app.exists:
+        appendToLog('Application name already exists or ended up in error, please check CME.')
+
+
 def debugPrint(textToPrint):
     if verboseDebug:
       print textToPrint
@@ -127,18 +156,18 @@ def changeApplicationName(new_name):
 '''
 
 
-def datestampConvert(datestamp): # Not needed
+def datestampConvert(datestamp):  # Not available on Windows
     try:
-      dtFormat = "%Y%m%d%H%M%S"
-      dtString = str(datestamp)
-      dtConverted = datetime.datetime.strptime(dtString, dtFormat)
-      # Localise date and time
-      dtLocaleDate = locale.nl_langinfo(locale.D_FMT)
-      dtLocaleTime = locale.nl_langinfo(locale.T_FMT)
-      dtShow = dtConverted.strftime(dtLocaleDate)
+        dtFormat = "%Y%m%d%H%M%S"
+        dtString = str(datestamp)
+        dtConverted = datetime.datetime.strptime(dtString, dtFormat)
+        # Localise date and time
+        dtLocaleDate = locale.nl_langinfo(locale.D_FMT)
+        dtLocaleTime = locale.nl_langinfo(locale.T_FMT)
+        dtShow = dtConverted.strftime(dtLocaleDate)
     except:
-      # Could not get datestamp from file
-      dtShow='-'
+        # Could not get datestamp from file
+        dtShow = '-'
     return dtShow
 
 
@@ -196,7 +225,7 @@ def writeToFile(fileName,content,flag):
     return
 
 
-def deleteFile(filepath, filename): # Not needed
+def deleteFile(filepath, filename):
     try:
         # Remove file
         if os.path.exists(filepath):
@@ -296,24 +325,26 @@ def downloadFile(url, localdir, item, proginc):
       appendToLog("[Error] Cannot download file "+url)
 
 
-def readFile(filepath): # Not needed
+def readFile(filepath):
     try:
-      fp = open(filepath, 'r')
-      output = fp.read()
-      output = output.strip()
-      fp.close()
-      return output
+        fp = open(filepath, 'r')
+        output = fp.read()
+        output = output.strip()
+        fp.close()
+        return output
     except:
-      debugPrint("[Error] Cannot read Local Version File")
-      appendToLog("[Error] Cannot read Local Version File")
+        debugPrint("[Error] Cannot read Local Version File")
+        appendToLog("[Error] Cannot read Local Version File")
 
 
-def on_config_changed(): # Not needed
+'''
+def on_config_changed(): #  Not needed
     # Update INI file
     writeConfig()
+'''
 
 
-def checkListUpdate(): # Still checking
+def checkListUpdate():  # Still checking
     global localVersion
 
     # Update Progressbar
@@ -322,47 +353,47 @@ def checkListUpdate(): # Still checking
 
     # Get remote list version
     if checkInternetConnection('http://thefanclub.co.za') == True:
-      # ONLINE
-      remoteVersion = readRemoteFile(remoteVersionPath)
+        # ONLINE
+        remoteVersion = readRemoteFile(remoteVersionPath)
     else:
-      # OFFLINE
-      remoteVersion = 0
+        # OFFLINE
+        remoteVersion = 0
 
     # Update Progressbar
     splashProgressPercent.set(50)
     refreshGui(splashWindow)
 
     # Decide to update list or not
-    if remoteVersion > localVersion :
-      debugPrint("[Notice] Downloading new software list "+remoteVersion)
-      appendToLog("[Notice] Downloading new software list "+remoteVersion)
-      splashProgressPercent.set(60)
-      refreshGui(splashWindow)
-      # Download new version
-      downloadTxtFile(remoteVersionPath, installDir)
-      # Download new XML list
-      downloadTxtFile(remoteXmlPath, installDir)
-      localVersion = remoteVersion
+    if remoteVersion > localVersion:
+        debugPrint("[Notice] Downloading new software list " + remoteVersion)
+        appendToLog("[Notice] Downloading new software list " + remoteVersion)
+        splashProgressPercent.set(60)
+        refreshGui(splashWindow)
+        # Download new version
+        downloadTxtFile(remoteVersionPath, installDir)
+        # Download new XML list
+        downloadTxtFile(remoteXmlPath, installDir)
+        localVersion = remoteVersion
 
 
 def on_cellall_toggle():
-    #global headerCheckAllState
+    # global headerCheckAllState
     itemCount = len(titleList)
     for listItem in range(itemCount):
-      # Check All OFF
-      if headerCheckAllState.get() == 0 and installStateList[listItem] != 'removed':
-        checkItem[listItem].set(0)
+        # Check All OFF
+        if headerCheckAllState.get() == 0 and installStateList[listItem] != 'removed':
+            checkItem[listItem].set(0)
 
-      # Check All ON
-      if headerCheckAllState.get() == 1 and installStateList[listItem] != 'removed' :
-        if installStateList[listItem] == 'not-installed' and installButtonTxt == 'Install' or updateList[listItem] :
-          checkItem[listItem].set(1)
+        # Check All ON
+        if headerCheckAllState.get() == 1 and installStateList[listItem] != 'removed':
+            if installStateList[listItem] == 'not-installed' and installButtonTxt == 'Install' or updateList[listItem]:
+                checkItem[listItem].set(1)
 
-        if installStateList[listItem] == 'installed' and installButtonTxt != 'Install' :
-          checkItem[listItem].set(1)
+            if installStateList[listItem] == 'installed' and installButtonTxt != 'Install':
+                checkItem[listItem].set(1)
 
-        if installButtonTxt == 'Remove' :
-          checkItem[listItem].set(1)
+            if installButtonTxt == 'Remove':
+                checkItem[listItem].set(1)
 
     # Set icon
     on_cell_toggle()
@@ -370,65 +401,65 @@ def on_cellall_toggle():
 
 def on_cell_toggle():
     # Toggle if not busy installing
-    if installStatus != 'busy' and installStatus != 'complete' :
-      # count selected items to decide if check all button should be unticked
-      itemCount = len(titleList)
-      itemSelectCount = 0
-      for listItem in range(itemCount):
-        itemSelected = checkItem[listItem].get()
-        if itemSelected == 1 and installStateList[listItem] != 'removed':
-          itemSelectCount = itemSelectCount + 1
-      # Untick Select All if no items selected
-      if itemSelectCount == 0:
-        headerCheckAllState.set(0)
+    if installStatus != 'busy' and installStatus != 'complete':
+        # count selected items to decide if check all button should be unticked
+        itemCount = len(titleList)
+        itemSelectCount = 0
+        for listItem in range(itemCount):
+            itemSelected = checkItem[listItem].get()
+            if itemSelected == 1 and installStateList[listItem] != 'removed':
+                itemSelectCount = itemSelectCount + 1
+        # Untick Select All if no items selected
+        if itemSelectCount == 0:
+            headerCheckAllState.set(0)
 
-      # check Checkboxes one by one for change and set display
-      for listItem in range(itemCount):
-        itemInstallState = installStateList[listItem]
-        iconPathMod = ''
-        # Set icon depending on installed state
-        if itemInstallState == 'installed':
-          # Item Selected
-          if checkItem[listItem].get() == 1:
-            if updateList[listItem] or installButtonTxt == 'Install':
-              iconPathMod = iconPathReinstall
-            else:
-              iconPathMod = iconPathOk
+        # check Checkboxes one by one for change and set display
+        for listItem in range(itemCount):
+            itemInstallState = installStateList[listItem]
+            iconPathMod = ''
+            # Set icon depending on installed state
+            if itemInstallState == 'installed':
+                # Item Selected
+                if checkItem[listItem].get() == 1:
+                    if updateList[listItem] or installButtonTxt == 'Install':
+                        iconPathMod = iconPathReinstall
+                    else:
+                        iconPathMod = iconPathOk
 
-            itemTitle[listItem].configure(foreground='#000000')
-            itemDescription[listItem].configure(foreground='#555555')
+                    itemTitle[listItem].configure(foreground='#000000')
+                    itemDescription[listItem].configure(foreground='#555555')
 
-            if installButtonTxt == 'Uninstall':
-              iconPathMod = iconPathError
+                    if installButtonTxt == 'Uninstall':
+                        iconPathMod = iconPathError
 
-            if installButtonTxt == 'Remove':
-              iconPathMod = iconPathBlank
+                    if installButtonTxt == 'Remove':
+                        iconPathMod = iconPathBlank
 
-          # Item not selected
-          if checkItem[listItem].get() == 0:
-            if updateList[listItem] and installButtonTxt == 'Install':
-              iconPathMod = iconPathReinstall
-            else:
-              iconPathMod = iconPathOk
+                # Item not selected
+                if checkItem[listItem].get() == 0:
+                    if updateList[listItem] and installButtonTxt == 'Install':
+                        iconPathMod = iconPathReinstall
+                    else:
+                        iconPathMod = iconPathOk
 
-            if installButtonTxt == 'Remove':
-              iconPathMod = iconPathBlank
+                    if installButtonTxt == 'Remove':
+                        iconPathMod = iconPathBlank
 
-            if installButtonTxt == 'Install' and not updateList[listItem]:
-              itemTitle[listItem].configure(foreground='#AAAAAA')
-              itemDescription[listItem].configure(foreground='#AAAAAA')
+                    if installButtonTxt == 'Install' and not updateList[listItem]:
+                        itemTitle[listItem].configure(foreground='#AAAAAA')
+                        itemDescription[listItem].configure(foreground='#AAAAAA')
 
-        if itemInstallState == 'not-installed':
-          # if not
-          if installButtonTxt == 'Install' :
-            itemTitle[listItem].configure(foreground='#000000')
-            itemDescription[listItem].configure(foreground='#555555')
+            if itemInstallState == 'not-installed':
+                # if not
+                if installButtonTxt == 'Install':
+                    itemTitle[listItem].configure(foreground='#000000')
+                    itemDescription[listItem].configure(foreground='#555555')
 
-        # Set icon
-        if iconPathMod:
-          itemIconImage[listItem] = PhotoImage(file=iconPathRetinaMod(iconPathMod))
-          itemIcon[listItem].configure(image=itemIconImage[listItem])
-          itemIcon[listItem].image = itemIconImage[listItem]
+            # Set icon
+            if iconPathMod:
+                itemIconImage[listItem] = PhotoImage(file=iconPathRetinaMod(iconPathMod))
+                itemIcon[listItem].configure(image=itemIconImage[listItem])
+                itemIcon[listItem].image = itemIconImage[listItem]
 
 
 def refreshGui(widget):
@@ -547,9 +578,18 @@ def on_install_button_active(button, model, selectcount):
             outFile = os.path.join(appsFolder, titleList[listItem])
             appendToLog('Outfile: %s' % outFile)
 
-            # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+            # INI file i.e. C:\Users\Administrator\Downloads\INI\IxnServer\genesys_silent.ini
             ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
-            appendToLog('INI file: %s' % ini)
+
+            #Modify Modify 'ConfigServer', 'Host' from INI file with titleList[listItem]
+            appendToLog('[Notice] Modifying settings in INI file: %s' % ini)
+            hname = platform.uname()[1]  # hostname
+            appendToLog('Your hostname is: %s' %hname)
+            appendToLog('[Notice] Modifying hostname of %s' %ini)
+            writeConfig(ini, 'ConfigServer', 'host', hname)
+            appendToLog('[Notice] Successfully modified hostname of %s' %ini)
+
+            # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
             config_installpath = os.path.join(installationDir, titleList[listItem])
             appendToLog('Config installation path: %s' %config_installpath)
             appendToLog('[Notice] Modifying installation path of %s' %ini)
@@ -558,6 +598,10 @@ def on_install_button_active(button, model, selectcount):
 
             # ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
             # config_installpath = os.path.join(installationDir, titleList[listItem])
+
+            # First, create Application from Config Server
+            appendToLog('[Notice] Creating %s application from Config Server' % titleList[listItem])
+            createAppFromCfgServer(hname)
 
             # for zip files, extract first
             if outFileName:
@@ -770,57 +814,58 @@ def on_cancel_button(widget=''):
     global checkItemOldState
 
     if installStatus == 'busy':
-      if tkMessageBox.askyesno(appName, "Are you sure you would like to Quit?", icon='question'):
-        headerLabelTxt.set('Application Cancelled')
-        headerProgPercent.set(100)
-        headerProgLabelTxt.set('')
-        debugPrint('[Warning] Application Cancelled.')
-        appendToLog('[Warning] Application Cancelled.')
-      else:
-        return
+        if tkMessageBox.askyesno(appName, "Are you sure you would like to Quit?", icon='question'):
+            headerLabelTxt.set('Application Cancelled')
+            headerProgPercent.set(100)
+            headerProgLabelTxt.set('')
+            debugPrint('[Warning] Application Cancelled.')
+            appendToLog('[Warning] Application Cancelled.')
+        else:
+            return
 
     if str(widget) == '' and installButtonTxt == 'Remove' or installButtonTxt == 'Uninstall':
-      # Reset after remove or uninstall for install
-      installButtonTxt = 'Install'
-      installButton.configure(text=installButtonTxt)
+        # Reset after remove or uninstall for install
+        installButtonTxt = 'Install'
+        installButton.configure(text=installButtonTxt)
 
-      cancelButtonTxt = 'Quit'
-      cancelButton.configure(text=cancelButtonTxt)
+        cancelButtonTxt = 'Quit'
+        cancelButton.configure(text=cancelButtonTxt)
 
-      headerLabelTxt.set('Select the software you would like to install')
-      headerProgLabelTxt.set('Click Install to Start')
+        headerLabelTxt.set('Select the software you would like to install')
+        headerProgLabelTxt.set('Click Install to Start')
 
-      # Reset Icons and Checkboxes and progress bars
-      for listItem in range(len(titleList)):
-        # Reset checkbox
-        checkItem[listItem].set(checkItemOldState[listItem])
-        itemCheckBox[listItem].configure(state=NORMAL)
-        itemProgressPercent[listItem].set(0)
-        itemInfo[listItem].configure(text='i', state=NORMAL)
+        # Reset Icons and Checkboxes and progress bars
+        for listItem in range(len(titleList)):
+            # Reset checkbox
+            checkItem[listItem].set(checkItemOldState[listItem])
+            itemCheckBox[listItem].configure(state=NORMAL)
+            itemProgressPercent[listItem].set(0)
+            itemInfo[listItem].configure(text='i', state=NORMAL)
 
-      # Flush temp var
-      checkItemOldState = []
-      # Update Display
-      headerCheckAllState.set(1)
-      headerProgPercent.set(0)
+        # Flush temp var
+        checkItemOldState = []
+        # Update Display
+        headerCheckAllState.set(1)
+        headerProgPercent.set(0)
 
-      # Reset Remove Button
-      removeButton.configure(state=NORMAL)
+        # Reset Remove Button
+        removeButton.configure(state=NORMAL)
 
-      # Do display magic
-      on_cell_toggle()
-      refreshGui(mainWindow)
-      return
+        # Do display magic
+        on_cell_toggle()
+        refreshGui(mainWindow)
+        return
 
     # Check if list has changed and prompt for save
-    if listHasChanged == True :
-      if tkMessageBox.askyesno(title=appName, message=xmlFilename + " list has changed", detail = "Save the changes to the list before quiting?", icon='warning'):
-        # Export list before exit
-        on_export_list()
+    if listHasChanged == True:
+        if tkMessageBox.askyesno(title=appName, message=xmlFilename + " list has changed",
+                                 detail="Save the changes to the list before quiting?", icon='warning'):
+            # Export list before exit
+            on_export_list()
 
     # If not busy just quit
     if loop_thread:
-      joinTreads()
+        joinTreads()
     mainWindow.destroy()
     sys.exit()
 
@@ -886,7 +931,7 @@ def renderAboutDialog():
     # Center the main window
     x = (aboutWindow.winfo_screenwidth() - aboutWindow.winfo_reqwidth()) / 2
     y = (aboutWindow.winfo_screenheight() - aboutWindow.winfo_reqheight()) / 2
-    aboutWindow.geometry("+%d+%d" % (x-pixelRetinaMod(40), y-pixelRetinaMod(140)))
+    aboutWindow.geometry("+%d+%d" % (x - pixelRetinaMod(40), y - pixelRetinaMod(140)))
 
     # Create an logo Image GIF only with PhotoImage
     aboutLogoImage = PhotoImage(file=iconPathRetinaMod(iconPath))
@@ -901,10 +946,14 @@ def renderAboutDialog():
     appVersionLabel = Label(aboutWindow, text='Version ' + appVersion)
     appVersionLabel.pack()
 
-    appListLabel = Label(aboutWindow, text='List Date ' + datestampConvert(localVersion), font=('default', 11, 'normal'))
+    '''
+    appListLabel = Label(aboutWindow, text='List Date ' + datestampConvert(localVersion),
+                          font=('default', 11, 'normal'))
     appListLabel.pack()
+    '''
 
-    appCreditLabel = Label(aboutWindow, text=u"\u00a9 2013-"+thisYear+" The Fan Club", font=('default', 11, 'normal'))
+    appCreditLabel = Label(aboutWindow, text=u"\u00a9" + thisYear + " Edison",
+                           font=('default', 11, 'normal'))
     appCreditLabel.pack(pady=(pixelRetinaMod(10), pixelRetinaMod(5)))
 
     refreshGui(aboutWindow)
@@ -1028,46 +1077,47 @@ def on_new_list(widget=''):
 def on_import_list(widget=''):
     # Check if revert was clicked else open file dialog
     if str(widget) == 'revert':
-      # check if file is set for reload
-      newXmlFilePath = xmlPath
+        # check if file is set for reload
+        newXmlFilePath = xmlPath
     else:
-      # Render file open dialog
-      myfiletypes = [('MAI Files', '*.mai'), ('XML Files', '*.xml'), ('All files', '*')]
-      newXmlFilePath = tkFileDialog.askopenfilename(title='Choose a Software List File', initialdir=userHome, filetypes=myfiletypes)
+        # Render file open dialog
+        myfiletypes = [('MAI Files', '*.mai'), ('XML Files', '*.xml'), ('All files', '*')]
+        newXmlFilePath = tkFileDialog.askopenfilename(title='Choose a Software List File', initialdir=userHome,
+                                                      filetypes=myfiletypes)
 
     if os.path.exists(newXmlFilePath):
-      # Remove lock
-      fcntl.flock(lockFile, fcntl.LOCK_UN|fcntl.LOCK_NB)
-      # Close MainWindow
-      mainWindow.destroy()
-      # Restart program
-      python = sys.executable
-      # Add new argv before restart
-      if len(sys.argv) == 1:
-        sys.argv.append(newXmlFilePath)
-      else:
-        sys.argv[1] = newXmlFilePath
-      # Restart
-      os.execl(python, python, * sys.argv)
+        # Remove lock
+        # fcntl.flock(lockFile, fcntl.LOCK_UN | fcntl.LOCK_NB)
+        # Close MainWindow
+        mainWindow.destroy()
+        # Restart program
+        python = sys.executable
+        # Add new argv before restart
+        if len(sys.argv) == 1:
+            sys.argv.append(newXmlFilePath)
+        else:
+            sys.argv[1] = newXmlFilePath
+        # Restart
+        os.execl(python, python, *sys.argv)
 
 
 def removeSoftwareItems(items=''):
     # Remove software from list
     for listItem in range(len(titleList)):
-      # If selected remove from list
-      if checkItem[listItem].get() == 1 or items == 'all':
-        # Flag list has change
-        onListHasChanged(True)
-        # Remove Items from display
-        itemCheckBox[listItem].grid_forget()
-        itemTitle[listItem].grid_forget()
-        itemVersion[listItem].grid_forget()
-        itemDescription[listItem].grid_forget()
-        itemProgress[listItem].grid_forget()
-        itemIcon[listItem].grid_forget()
-        itemInfo[listItem].grid_forget()
-        # Update state
-        installStateList[listItem] = 'removed'
+        # If selected remove from list
+        if checkItem[listItem].get() == 1 or items == 'all':
+            # Flag list has change
+            onListHasChanged(True)
+            # Remove Items from display
+            itemCheckBox[listItem].grid_forget()
+            itemTitle[listItem].grid_forget()
+            itemVersion[listItem].grid_forget()
+            itemDescription[listItem].grid_forget()
+            itemProgress[listItem].grid_forget()
+            itemIcon[listItem].grid_forget()
+            itemInfo[listItem].grid_forget()
+            # Update state
+            installStateList[listItem] = 'removed'
     # Set Select All Checkbox
     headerCheckAllState.set(0)
 
@@ -1088,25 +1138,25 @@ def on_remove_software(widget=''):
     removeButton.configure(state=DISABLED)
 
     for listItem in range(len(titleList)):
-      if not len(checkItemOldState) < listItem:
-        # Capture current state
-        checkItemOldState.append(checkItem[listItem].get())
+        if not len(checkItemOldState) < listItem:
+            # Capture current state
+            checkItemOldState.append(checkItem[listItem].get())
 
-      # Deselect all
-      checkItem[listItem].set(0)
+        # Deselect all
+        checkItem[listItem].set(0)
 
-      # Make sure all checkboxes are active
-      itemCheckBox[listItem].configure(state=NORMAL)
+        # Make sure all checkboxes are active
+        itemCheckBox[listItem].configure(state=NORMAL)
 
-      # Clear progress bars
-      itemProgressPercent[listItem].set(0)
+        # Clear progress bars
+        itemProgressPercent[listItem].set(0)
 
-      # Remove Greyed out items if any
-      itemTitle[listItem].configure(foreground='#000000')
-      itemDescription[listItem].configure(foreground='#555555')
+        # Remove Greyed out items if any
+        itemTitle[listItem].configure(foreground='#000000')
+        itemDescription[listItem].configure(foreground='#555555')
 
-      # Change Info i button to Remove - button
-      itemInfo[listItem].configure(text='-', state=NORMAL)
+        # Change Info i button to Remove - button
+        itemInfo[listItem].configure(text='-', state=NORMAL)
 
     # Set Select All Checkbox
     headerCheckAllState.set(0)
@@ -1308,7 +1358,8 @@ def uninstallSoftwareItems():
                         pGUID = readConfig(setupINI, 'Startup', 'ProductGUID')
                         replace_guid(iss, hdr_file, pGUID)
                     # proceed with the uninstallation
-                    uninstall_path = find_uninstallString(_winreg.HKEY_LOCAL_MACHINE, keypath, titleList[listItem], pGUID)
+                    uninstall_path = find_uninstallString(_winreg.HKEY_LOCAL_MACHINE, keypath, titleList[listItem],
+                                                          pGUID)
                     # os.chdir(uninstall_path), test
                     # appendToLog('[Notice] Current directory is %s' % os.getcwd())
                     appendToLog('Starting to uninstall %s using  - %s...' % (titleList[listItem], iss))
@@ -1433,35 +1484,35 @@ def processInstallVersion(title, appfile, version):
     updateItem = False
 
     if installedItem:
-      # Check if software can be updated
-      updateItem = checkSoftwareUpdate(versionLocalItem, version)
+        # Check if software can be updated
+        updateItem = checkSoftwareUpdate(versionLocalItem, version)
 
-      debugPrint("Installed : %s" % title)
-      appendToLog("Installed : %s" % title)
-      debugPrint("Version Local : [%s]" % str(versionLocalItem))
-      appendToLog("Version Local : [%s]" % str(versionLocalItem))
-      debugPrint("Version List  : [%s]" % str(version))
-      appendToLog("Version List  : [%s]" % str(version))
+        debugPrint("Installed : %s" % title)
+        appendToLog("Installed : %s" % title)
+        debugPrint("Version Local : [%s]" % str(versionLocalItem))
+        appendToLog("Version Local : [%s]" % str(versionLocalItem))
+        debugPrint("Version List  : [%s]" % str(version))
+        appendToLog("Version List  : [%s]" % str(version))
 
-      # Set Checkbox and Icon
-      if updateItem:
-        selectBox.append(1)
-        iconpathmod = iconPathReinstall
-        debugPrint(title + " update : " + str(updateItem))
-        appendToLog(title + " update : " + str(updateItem))
-      else:
-        selectBox.append(0)
-        iconpathmod = iconPathOk
+        # Set Checkbox and Icon
+        if updateItem:
+            selectBox.append(1)
+            iconpathmod = iconPathReinstall
+            debugPrint(title + " update : " + str(updateItem))
+            appendToLog(title + " update : " + str(updateItem))
+        else:
+            selectBox.append(0)
+            iconpathmod = iconPathOk
 
-      progressvalue = 0
-      installStateList.append('installed')
+        progressvalue = 0
+        installStateList.append('installed')
     else:
-      selectBox.append(1)
-      progressvalue = 0
-      iconpathmod = iconPathBlank
-      installStateList.append('not-installed')
+        selectBox.append(1)
+        progressvalue = 0
+        iconpathmod = iconPathBlank
+        installStateList.append('not-installed')
 
-    return (progressvalue, iconpathmod, updateItem)
+    return progressvalue, iconpathmod, updateItem
 
 
 def AddSoftwareItem(item):
@@ -1469,138 +1520,143 @@ def AddSoftwareItem(item):
     missingInput = ''
 
     if not versionInput.get():
-      missingInput = versionInput
-      inputError = "Enter Version Number"
+        missingInput = versionInput
+        inputError = "Enter Version Number"
 
     if not urlInput.get():
-      missingInput = urlInput
-      inputError = "Enter File Download URL"
+        missingInput = urlInput
+        inputError = "Enter File Download URL"
 
     if not appFileInput.get():
-      missingInput = appFileInput
-      inputError = "Enter Application Filename"
+        missingInput = appFileInput
+        inputError = "Enter Application Filename"
 
     if not descriptionInput.get():
-      missingInput = descriptionInput
-      inputError = "Enter Description"
+        missingInput = descriptionInput
+        inputError = "Enter Description"
 
     if not titleInput.get():
-      missingInput = titleInput
-      inputError = "Enter Title"
+        missingInput = titleInput
+        inputError = "Enter Title"
 
     # Check if item is already on the list
     if titleInput.get() in titleList and item == '':
-      missingInput = titleInput
-      inputError = titleInput.get()+' already in the list'
+        missingInput = titleInput
+        inputError = titleInput.get() + ' already in the list'
 
+    '''
+    Not needed
     # Check if URL exists last
     if urlInput.get() and not missingInput:
-      fileExt = fileExtension(os.path.basename(urlInput.get()))
-      if not fileExt.lower() in ('dmg', 'bz', 'tgz', 'tar', 'gz', 'bz2', 'zip'):
-        missingInput = urlInput
-        inputError = 'Invalid file download URL'
-      else:
-        if not checkInternetConnection(urlInput.get()):
-          missingInput = urlInput
-          inputError = 'Download URL does not exist'
+        fileExt = fileExtension(os.path.basename(urlInput.get()))
+        if not fileExt.lower() in ('dmg', 'bz', 'tgz', 'tar', 'gz', 'bz2', 'zip'):
+            missingInput = urlInput
+            inputError = 'Invalid file download URL'
+        else:
+            if not checkInternetConnection(urlInput.get()):
+                missingInput = urlInput
+                inputError = 'Download URL does not exist'
+    '''
 
     # Create input loop until no more items are missing
     if missingInput:
-      #print "Error : "+inputError
-      missingInput.focus_set()
-      # Show error
-      errorLabel.configure(text=inputError)
+        # print "Error : "+inputError
+        missingInput.focus_set()
+        # Show error
+        errorLabel.configure(text=inputError)
     else:
-      # If no more missing items then continue
-      addSoftwareWindow.withdraw()
+        # If no more missing items then continue
+        addSoftwareWindow.withdraw()
 
-      # Append List arrays with new item
-      # Get and set selectBox, iconPathMod, progressValue, installStateList
-      (progressValue, iconPathMod, updateFlag) = processInstallVersion(titleInput.get(), appFileInput.get(), versionInput.get())
+        # Append List arrays with new item
+        # Get and set selectBox, iconPathMod, progressValue, installStateList
+        (progressValue, iconPathMod, updateFlag) = processInstallVersion(titleInput.get(), appFileInput.get(),
+                                                                         versionInput.get())
 
-      if item == '':
-        # Append to arrays
-        titleList.append(titleInput.get())
-        descriptionList.append(descriptionInput.get())
-        appFileList.append(appFileInput.get())
-        urlList.append(urlInput.get())
-        versionList.append(versionInput.get())
-        # Build Progress blank array
-        progressBox.append(progressValue)
-        # Build Icon Path mod array
-        iconPathList.append(iconPathMod)
-        updateList.append(updateFlag)
-        newIndex = len(titleList)-1
-        newState = 'add'
-      else:
-        # Edit current item if item has value
-        titleList[item] = titleInput.get()
-        descriptionList[item] = descriptionInput.get()
-        appFileList[item] = appFileInput.get()
-        urlList[item] = urlInput.get()
-        versionList[item] = versionInput.get()
-        # Build Progress blank array
-        progressBox[item] = progressValue
-        # Build Icon Path mod array
-        iconPathList[item] = iconPathMod
-        updateList[item] = updateFlag
-        newIndex = item
-        newState = 'update'
+        if item == '':
+            # Append to arrays
+            titleList.append(titleInput.get())
+            descriptionList.append(descriptionInput.get())
+            appFileList.append(appFileInput.get())
+            urlList.append(urlInput.get())
+            versionList.append(versionInput.get())
+            # Build Progress blank array
+            progressBox.append(progressValue)
+            # Build Icon Path mod array
+            iconPathList.append(iconPathMod)
+            updateList.append(updateFlag)
+            newIndex = len(titleList) - 1
+            newState = 'add'
+        else:
+            # Edit current item if item has value
+            titleList[item] = titleInput.get()
+            descriptionList[item] = descriptionInput.get()
+            appFileList[item] = appFileInput.get()
+            urlList[item] = urlInput.get()
+            versionList[item] = versionInput.get()
+            # Build Progress blank array
+            progressBox[item] = progressValue
+            # Build Icon Path mod array
+            iconPathList[item] = iconPathMod
+            updateList[item] = updateFlag
+            newIndex = item
+            newState = 'update'
 
-      debugPrint('[Notice] %s %s on list' % (titleInput.get(), newState))
-      appendToLog('[Notice] %s %s on list' % (titleInput.get(), newState))
-      # Close input window when vars processed
-      addSoftwareWindow.destroy()
+        debugPrint('[Notice] %s %s on list' % (titleInput.get(), newState))
+        appendToLog('[Notice] %s %s on list' % (titleInput.get(), newState))
+        # Close input window when vars processed
+        addSoftwareWindow.destroy()
 
-      # Append to display by using array data
-      addItemToListDisplay(newIndex, newState)
+        # Append to display by using array data
+        addItemToListDisplay(newIndex, newState)
 
-      # Flaag list changed
-      onListHasChanged(True)
+        # Flag list changed
+        onListHasChanged(True)
 
-      # Update display
-      refreshGui(mainWindow)
+        # Update display
+        refreshGui(mainWindow)
 
 
 def on_info_button(item):
-	  # Decide if button is pressed as info or uninstall
-    if installButtonTxt == 'Install' :
-      # Info Button - View / Update
-	    on_add_edit_software(item)
+    # Decide if button is pressed as info or uninstall
+    if installButtonTxt == 'Install':
+        # Info Button - View / Update
+        on_add_edit_software(item)
 
     if installButtonTxt == 'Uninstall' or installButtonTxt == 'Remove':
-      # Uninstall Item
-      # First De-select all if any have been selected via checkbox
-      for listItem in range(len(titleList)):
-        # Deselect all
-        checkItem[listItem].set(0)
-      # Set De-Select All Checkbox
-      headerCheckAllState.set(0)
-      # Then Select item
-      checkItem[item].set(1)
-      # Disable button
-      itemInfo[item].configure(state=DISABLED)
-      # Update display
-      on_cell_toggle()
-      # Uninstall item
-      if installButtonTxt == 'Uninstall':
-        if tkMessageBox.askyesno(appName, "Are you sure you would like to " + installButtonTxt+u" \n\n\u25cf  " + titleList[item], icon='question'):
-          uninstallSoftwareItems()
-        else:
-          # De-Select item
-          checkItem[item].set(0)
-          # Enable button
-          itemInfo[item].configure(state=NORMAL)
-          # Update display
-          on_cell_toggle()
+        # Uninstall Item
+        # First De-select all if any have been selected via checkbox
+        for listItem in range(len(titleList)):
+            # Deselect all
+            checkItem[listItem].set(0)
+        # Set De-Select All Checkbox
+        headerCheckAllState.set(0)
+        # Then Select item
+        checkItem[item].set(1)
+        # Disable button
+        itemInfo[item].configure(state=DISABLED)
+        # Update display
+        on_cell_toggle()
+        # Uninstall item
+        if installButtonTxt == 'Uninstall':
+            if tkMessageBox.askyesno(appName, "Are you sure you would like to " + installButtonTxt + u" \n\n\u25cf  " +
+                    titleList[item], icon='question'):
+                uninstallSoftwareItems()
+            else:
+                # De-Select item
+                checkItem[item].set(0)
+                # Enable button
+                itemInfo[item].configure(state=NORMAL)
+                # Update display
+                on_cell_toggle()
 
-      # Remove item
-      if installButtonTxt == 'Remove':
-        removeSoftwareItems()
+        # Remove item
+        if installButtonTxt == 'Remove':
+            removeSoftwareItems()
 
 
 def on_add_edit_software(item=''):
-	  # Render window and use for info, update and add item
+    # Render window and use for info, update and add item
     global addSoftwareWindow
     global titleInput
     global descriptionInput
@@ -1616,17 +1672,17 @@ def on_add_edit_software(item=''):
 
     # Override binding call for cmd+s
     if 'instance' in str(item):
-      item = ''
+        item = ''
 
     # Add Button and heading text
     if item != '':
-      addItemButtonTxt = 'Update'
+        addItemButtonTxt = 'Update'
     else:
-      addItemButtonTxt = 'Add'
+        addItemButtonTxt = 'Add'
 
     # Check if add / update window open already
     if addSoftwareWindow:
-      addSoftwareWindow.destroy()
+        addSoftwareWindow.destroy()
 
     # Create Add Software window
     addSoftwareWindow = Toplevel()
@@ -1638,12 +1694,13 @@ def on_add_edit_software(item=''):
     # Center the main window
     x = (addSoftwareWindow.winfo_screenwidth() - addSoftwareWindow.winfo_reqwidth()) / 2
     y = (addSoftwareWindow.winfo_screenheight() - addSoftwareWindow.winfo_reqheight()) / 2
-    addSoftwareWindow.geometry("+%d+%d" % (x-pixelRetinaMod(60), y-pixelRetinaMod(65)))
+    addSoftwareWindow.geometry("+%d+%d" % (x - pixelRetinaMod(60), y - pixelRetinaMod(65)))
 
     addSoftwareWindow.lift()
 
     # Add Error Label
-    errorLabel = Label(addSoftwareWindow, text='', foreground='#333333', anchor=CENTER, justify=CENTER, font=('default', 11, 'normal'))
+    errorLabel = Label(addSoftwareWindow, text='', foreground='#333333', anchor=CENTER, justify=CENTER,
+                       font=('default', 11, 'normal'))
     # Add Title to Top Frame
     titleLabel = Label(addSoftwareWindow, text='Title:')
     # Add Title input
@@ -1658,7 +1715,7 @@ def on_add_edit_software(item=''):
     appFileInput = Entry(addSoftwareWindow)
 
     # Add URL Label
-    urlLabel = Label(addSoftwareWindow, text='Download URL:')
+    urlLabel = Label(addSoftwareWindow, text='URL:')
     # Add URL input
     urlInput = Entry(addSoftwareWindow)
 
@@ -1669,16 +1726,16 @@ def on_add_edit_software(item=''):
 
     # If Info mode then display data we have
     if addItemButtonTxt == 'Update':
-      titleInput.delete(0, END)
-      titleInput.insert(0, titleList[item])
-      descriptionInput.delete(0, END)
-      descriptionInput.insert(0, descriptionList[item])
-      appFileInput.delete(0, END)
-      appFileInput.insert(0, appFileList[item])
-      urlInput.delete(0, END)
-      urlInput.insert(0, urlList[item])
-      versionInput.delete(0, END)
-      versionInput.insert(0, versionList[item])
+        titleInput.delete(0, END)
+        titleInput.insert(0, titleList[item])
+        descriptionInput.delete(0, END)
+        descriptionInput.insert(0, descriptionList[item])
+        appFileInput.delete(0, END)
+        appFileInput.insert(0, appFileList[item])
+        urlInput.delete(0, END)
+        urlInput.insert(0, urlList[item])
+        versionInput.delete(0, END)
+        versionInput.insert(0, versionList[item])
 
     # Add Cancel Button
     cancelItemButton = Button(addSoftwareWindow, text='Cancel', command=addSoftwareWindow.destroy)
@@ -1688,23 +1745,30 @@ def on_add_edit_software(item=''):
     # Pack grid
     errorLabel.grid(row=0, column=1, columnspan=2, pady=pixelRetinaMod(5), padx=pixelRetinaMod(10))
 
-    titleLabel.grid(row=2, column=0, columnspan=1, pady=pixelRetinaMod(3), padx=(pixelRetinaMod(30), pixelRetinaMod(5)), sticky='E')
+    titleLabel.grid(row=2, column=0, columnspan=1, pady=pixelRetinaMod(3), padx=(pixelRetinaMod(30), pixelRetinaMod(5)),
+                    sticky='E')
     titleInput.grid(row=2, column=1, columnspan=2, pady=pixelRetinaMod(3), padx=0, sticky='we')
 
-    descriptionLabel.grid(row=3, column=0, columnspan=1, pady=pixelRetinaMod(3), padx=(pixelRetinaMod(30), pixelRetinaMod(5)), sticky='E')
+    descriptionLabel.grid(row=3, column=0, columnspan=1, pady=pixelRetinaMod(3),
+                          padx=(pixelRetinaMod(30), pixelRetinaMod(5)), sticky='E')
     descriptionInput.grid(row=3, column=1, columnspan=2, pady=pixelRetinaMod(3), padx=0, sticky='we')
 
-    appFileLabel.grid(row=4, column=0, columnspan=1, pady=pixelRetinaMod(3), padx=(pixelRetinaMod(30), pixelRetinaMod(5)), sticky='E')
+    appFileLabel.grid(row=4, column=0, columnspan=1, pady=pixelRetinaMod(3),
+                      padx=(pixelRetinaMod(30), pixelRetinaMod(5)), sticky='E')
     appFileInput.grid(row=4, column=1, columnspan=2, pady=pixelRetinaMod(3), padx=0, sticky='we')
 
-    urlLabel.grid(row=5, column=0, columnspan=1, pady=pixelRetinaMod(3), padx=(pixelRetinaMod(30), pixelRetinaMod(5)), sticky='E')
+    urlLabel.grid(row=5, column=0, columnspan=1, pady=pixelRetinaMod(3), padx=(pixelRetinaMod(30), pixelRetinaMod(5)),
+                  sticky='E')
     urlInput.grid(row=5, column=1, columnspan=2, pady=pixelRetinaMod(3), padx=0, sticky='we')
 
-    versionLabel.grid(row=6, column=0, columnspan=1, pady=pixelRetinaMod(3), padx=(pixelRetinaMod(30), pixelRetinaMod(5)), sticky='E')
+    versionLabel.grid(row=6, column=0, columnspan=1, pady=pixelRetinaMod(3),
+                      padx=(pixelRetinaMod(30), pixelRetinaMod(5)), sticky='E')
     versionInput.grid(row=6, column=1, columnspan=2, pady=pixelRetinaMod(3), padx=0, sticky='we')
 
-    cancelItemButton.grid(row=8, column=1, columnspan=1, pady=(pixelRetinaMod(25), pixelRetinaMod(10)), padx=pixelRetinaMod(5), sticky='E')
-    addItemButton.grid(row=8, column=2, columnspan=1, pady=(pixelRetinaMod(25), pixelRetinaMod(10)), padx=pixelRetinaMod(5), sticky='E')
+    cancelItemButton.grid(row=8, column=1, columnspan=1, pady=(pixelRetinaMod(25), pixelRetinaMod(10)),
+                          padx=pixelRetinaMod(5), sticky='E')
+    addItemButton.grid(row=8, column=2, columnspan=1, pady=(pixelRetinaMod(25), pixelRetinaMod(10)),
+                       padx=pixelRetinaMod(5), sticky='E')
 
     refreshGui(addSoftwareWindow)
 
@@ -1721,10 +1785,10 @@ def on_show_log():
     # Center the main window
     x = (showLogWindow.winfo_screenwidth() - showLogWindow.winfo_reqwidth()) / 2
     y = (showLogWindow.winfo_screenheight() - showLogWindow.winfo_reqheight()) / 2
-    showLogWindow.geometry("+%d+%d" % (x-pixelRetinaMod(60), y-pixelRetinaMod(65)))
+    showLogWindow.geometry("+%d+%d" % (x - pixelRetinaMod(60), y - pixelRetinaMod(65)))
 
     textPad = ScrolledText(showLogWindow, width=120, height=50)
-    #textPad.grid(row=0, column=0, columnspan=3, pady=10, padx=5, sticky='news')
+    # textPad.grid(row=0, column=0, columnspan=3, pady=10, padx=5, sticky='news')
     textPad.pack(padx=0, pady=0, fill=BOTH, expand=True)
 
     contents = readFile(logFile)
@@ -1746,11 +1810,11 @@ def onListHasChanged(status):
     listHasChanged = status
     # Set menu save button and window title
     if status == True:
-      fileMenu.entryconfig("Save", state=NORMAL)
-      mainWindow.title(appName+' - ' + xmlFilename + '*')
+        fileMenu.entryconfig("Save", state=NORMAL)
+        mainWindow.title(appName + ' - ' + xmlFilename + '*')
     if status == False:
-      fileMenu.entryconfig("Save", state=DISABLED)
-      mainWindow.title(appName + ' - ' + xmlFilename)
+        fileMenu.entryconfig("Save", state=DISABLED)
+        mainWindow.title(appName + ' - ' + xmlFilename)
 
 
 def writeXmlFile(xmlfilepath):
@@ -1759,7 +1823,7 @@ def writeXmlFile(xmlfilepath):
       deleteFile(xmlfilepath, os.path.basename(xmlfilepath))
 
     # Build XML File
-    contentHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<MacAfterInstall>\n\t<Software>\n'
+    contentHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<AutoInstall>\n\t<Software>\n'
     writeToFile(xmlfilepath, contentHeader, 'a')
 
     # Add each item
@@ -1786,7 +1850,7 @@ def writeXmlFile(xmlfilepath):
         contentLine = '\t\t</Item>\n'
         writeToFile(xmlfilepath, contentLine, 'a')
 
-    contentFooter = '\t</Software>\n</MacAfterInstall>'
+    contentFooter = '\t</Software>\n</AutoInstall>'
     writeToFile(xmlfilepath, contentFooter, 'a')
 
     debugPrint('[Notice] Saved list to : %s' % xmlfilepath)
@@ -1794,7 +1858,7 @@ def writeXmlFile(xmlfilepath):
     # Flag list state now as unchanged
     onListHasChanged(False)
 
-# Dito nako, yehey!
+
 def on_export_list(widget=''):
     global xmlPath
     global xmlFilename
@@ -1807,32 +1871,34 @@ def on_export_list(widget=''):
     currentXmlFileDir = os.path.dirname(xmlPath)
 
     if currentXmlFileDir == installDir or not os.path.exists(xmlPath):
-      currentXmlFileDir = userHome
-      widget = 'save-as'
+        currentXmlFileDir = userHome
+        widget = 'save-as'
 
     if widget == 'save-as':
-      # Render Save As Dialog
-      newXmlFilePath = tkFileDialog.asksaveasfilename(title='Enter List Name', initialdir=currentXmlFileDir, initialfile=currentXmlFilename, defaultextension='mai', filetypes=myfiletypes)
-      # return if no file selected
-      if not newXmlFilePath:
-        return
-      # Add extension if missing
-      if fileExtension(newXmlFilePath).lower() != 'xml' and fileExtension(newXmlFilePath).lower() != 'mai':
-        newXmlFilePath = newXmlFilePath + '.mai'
+        # Render Save As Dialog
+        newXmlFilePath = tkFileDialog.asksaveasfilename(title='Enter List Name', initialdir=currentXmlFileDir,
+                                                        initialfile=currentXmlFilename, defaultextension='mai',
+                                                        filetypes=myfiletypes)
+        # return if no file selected
+        if not newXmlFilePath:
+            return
+        # Add extension if missing
+        if fileExtension(newXmlFilePath).lower() != 'xml' and fileExtension(newXmlFilePath).lower() != 'mai':
+            newXmlFilePath = newXmlFilePath + '.mai'
 
-      xmlPath = newXmlFilePath
-      xmlFilename = os.path.basename(xmlPath)
+        xmlPath = newXmlFilePath
+        xmlFilename = os.path.basename(xmlPath)
 
     # Write List to File
     writeXmlFile(xmlPath)
 
 
 def on_help_documentation():
-    webbrowser.open(projectUrl, new=2, autoraise=True)
+    webbrowser.open(genDocSite, new=2, autoraise=True)
 
 
-def on_help_github():
-    webbrowser.open(projectGithubUrl, new=2, autoraise=True)
+def on_help_glossary():
+    webbrowser.open(genGlossary, new=2, autoraise=True)
 
 
 def menuControl(menuState):
@@ -1868,51 +1934,55 @@ def addItemToListDisplay(item, state):
     global itemInfo
 
     if state == 'add':
-      checkItem.append(IntVar())
-      itemCheckBox.append(Checkbutton(frame.interior, variable=checkItem[item], command=on_cell_toggle))
-      # I can increase the width
-      itemTitle.append(Label(frame.interior, text=titleList[item], width=20, justify=CENTER))
-      itemVersion.append(Label(frame.interior, text=versionList[item], foreground='#AAAAAA', width=20, justify=CENTER, anchor=CENTER))
-      itemDescription.append(Label(frame.interior, text=descriptionList[item], foreground='#555555', width=30, justify=CENTER))
-      itemProgressPercent.append(IntVar())
-      itemProgress.append(Progressbar(frame.interior, orient=HORIZONTAL, length=pixelRetinaMod(150), mode='determinate'))
-      # Need to understand this
-      itemProgress[item]['variable'] = itemProgressPercent[item]
+        checkItem.append(IntVar())
+        itemCheckBox.append(Checkbutton(frame.interior, variable=checkItem[item], command=on_cell_toggle))
+        # I can increase the width
+        itemTitle.append(Label(frame.interior, text=titleList[item], width=20, justify=CENTER))
+        itemVersion.append(Label(frame.interior, text=versionList[item], foreground='#AAAAAA', width=20, justify=CENTER,
+                                 anchor=CENTER))
+        itemDescription.append(
+            Label(frame.interior, text=descriptionList[item], foreground='#555555', width=30, justify=CENTER))
+        itemProgressPercent.append(IntVar())
+        itemProgress.append(
+            Progressbar(frame.interior, orient=HORIZONTAL, length=pixelRetinaMod(150), mode='determinate'))
+        # Need to understand this
+        itemProgress[item]['variable'] = itemProgressPercent[item]
 
-      itemIconImage.append(PhotoImage(file=iconPathRetinaMod(iconPathList[item])))
-      itemIcon.append(Label(frame.interior, image=itemIconImage[item]))
-      itemIcon[item].image = itemIconImage[item]
+        itemIconImage.append(PhotoImage(file=iconPathRetinaMod(iconPathList[item])))
+        itemIcon.append(Label(frame.interior, image=itemIconImage[item]))
+        itemIcon[item].image = itemIconImage[item]
 
-      itemInfo.append(Button(frame.interior, text='i', command=lambda i=item: on_info_button(i), width=1))
+        itemInfo.append(Button(frame.interior, text='i', command=lambda i=item: on_info_button(i), width=1))
 
-      checkItem[item].set(selectBox[item])
+        checkItem[item].set(selectBox[item])
 
-      # Add to layout
-      itemCheckBox[item].grid(row=item, column=0, padx=20)
-      itemTitle[item].grid(row=item, column=1, padx=10)
-      itemVersion[item].grid(row=item, column=2)
-      itemDescription[item].grid(row=item, column=3, padx=15)
-      itemProgress[item].grid(row=item, column=4, padx=10)
-      itemIcon[item].grid(row=item, column=5, padx=(pixelRetinaMod(5), pixelRetinaMod(5)))
-      itemInfo[item].grid(row=item, column=6, padx=(pixelRetinaMod(5), pixelRetinaMod(10)))
+        # Add to layout
+        itemCheckBox[item].grid(row=item, column=0, padx=20)
+        itemTitle[item].grid(row=item, column=1, padx=10)
+        itemVersion[item].grid(row=item, column=2)
+        itemDescription[item].grid(row=item, column=3, padx=15)
+        itemProgress[item].grid(row=item, column=4, padx=10)
+        itemIcon[item].grid(row=item, column=5, padx=(pixelRetinaMod(5), pixelRetinaMod(5)))
+        itemInfo[item].grid(row=item, column=6, padx=(pixelRetinaMod(5), pixelRetinaMod(10)))
 
     if state == 'update':
-      itemTitle[item].configure(text=titleList[item])
-      itemVersion[item].configure(text=versionList[item])
-      itemDescription[item].configure(text=descriptionList[item])
+        itemTitle[item].configure(text=titleList[item])
+        itemVersion[item].configure(text=versionList[item])
+        itemDescription[item].configure(text=descriptionList[item])
 
-      itemIconImage[item] = PhotoImage(file=iconPathRetinaMod(iconPathList[item]))
-      itemIcon[item].configure(image=itemIconImage[item])
-      itemIcon[item].image = itemIconImage[item]
+        itemIconImage[item] = PhotoImage(file=iconPathRetinaMod(iconPathList[item]))
+        itemIcon[item].configure(image=itemIconImage[item])
+        itemIcon[item].image = itemIconImage[item]
 
     # Set Checkbox depending on install state
     # must set value because IntVar object instance is created
     # must use checkItem[i].get to get current state
     # Grey out installed items
-    if installStateList[item] == 'installed' and iconPathList[item] != iconPathReinstall and installButtonTxt != 'Remove':
-      # Grey out text
-      itemTitle[item].configure(foreground='#AAAAAA')
-      itemDescription[item].configure(foreground='#AAAAAA')
+    if installStateList[item] == 'installed' and iconPathList[
+        item] != iconPathReinstall and installButtonTxt != 'Remove':
+        # Grey out text
+        itemTitle[item].configure(foreground='#AAAAAA')
+        itemDescription[item].configure(foreground='#AAAAAA')
 
 
 def on_install_complete(event):
@@ -1984,7 +2054,7 @@ def renderMainWindow():
     # Create Main window
     mainWindow = Tk()
     mainWindow.title(appName + ' - ' + xmlFilename)
-    mainWindow.wm_iconbitmap(iconWindow) # this is mine
+    mainWindow.wm_iconbitmap(iconWindow)  # this is mine
     mainWindow.configure(background=defaultColor)
     mainWindow.resizable(TRUE, TRUE)
     scaledWidth = pixelRetinaMod(650)
@@ -1997,14 +2067,14 @@ def renderMainWindow():
     # Center the main window
     x = (mainWindow.winfo_screenwidth() - mainWindow.winfo_reqwidth()) / 2
     y = (mainWindow.winfo_screenheight() - mainWindow.winfo_reqheight()) / 2
-    mainWindow.geometry("+%d+%d" % (x-pixelRetinaMod(190), y-pixelRetinaMod(175)))
+    mainWindow.geometry("+%d+%d" % (x - pixelRetinaMod(190), y - pixelRetinaMod(175)))
 
     # Create Menu Bar
     menuBar = Menu(mainWindow)
 
     # create App Menu
     # need to update this control key for Windows
-    mainMenu = Menu(menuBar, tearoff=0, name='windows') # name creates system app menu
+    mainMenu = Menu(menuBar, tearoff=0, name='windows')  # name creates system app menu
     mainMenu.add_command(label="About " + appName, command=renderAboutDialog)
     mainMenu.add_separator()
     mainMenu.add_command(label="Quit " + appName, command=lambda: on_cancel_button('quit'), accelerator="Ctrl+Q")
@@ -2025,17 +2095,20 @@ def renderMainWindow():
     fileMenu.add_separator()
     fileMenu.add_command(label="Revert to Saved List", command=lambda: on_import_list('revert'))
     fileMenu.add_separator()
-    fileMenu.add_command(label="Quit "+appName, command=lambda : on_cancel_button('quit'), accelerator="Ctrl+Q")
+    fileMenu.add_command(label="Quit " + appName, command=lambda: on_cancel_button('quit'), accelerator="Ctrl+Q")
     menuBar.add_cascade(label="File", menu=fileMenu)
 
     # create the Software Menu
     softwareMenu = Menu(menuBar, tearoff=0)
-    # Autoupdate
+    '''
+    # Autoupdate, Not needed
     checkAutoUpdate = BooleanVar()
     # Set value from config.
     # checkAutoUpdate.set(configAutoUpdate)
-    softwareMenu.add_checkbutton(label="Auto Update List", onvalue=True, offvalue=False, variable=checkAutoUpdate, command=on_config_changed) # think I don't need this
+    softwareMenu.add_checkbutton(label="Auto Update List", onvalue=True, offvalue=False, variable=checkAutoUpdate,
+                                 command=on_config_changed)
     softwareMenu.add_separator()
+    '''
     softwareMenu.add_command(label="Add to List", command=on_add_edit_software, accelerator="Ctrl+A")
     softwareMenu.bind_all("<Control-a>", on_add_edit_software)
     softwareMenu.add_command(label="Remove from List", command=on_remove_software, accelerator="Ctrl+R")
@@ -2052,11 +2125,11 @@ def renderMainWindow():
 
     # create Help Menu
     # mainWindow.createcommand('::tk::mac::ShowHelp', on_help_documentation) # override mac sys Help menu item, MAC only
-    helpMenu = Menu(menuBar, tearoff=0, name='_help') # name creates system app menu note underscore
+    helpMenu = Menu(menuBar, tearoff=0, name='_help')  # name creates system app menu note underscore
     helpMenu.add_separator()
-    helpMenu.add_command(label="Project Home Page", command=on_help_documentation)
-    #helpMenu.add_separator()
-    helpMenu.add_command(label="Project on GitHub", command=on_help_github)
+    helpMenu.add_command(label="Documentation Site", command=on_help_documentation)
+    # helpMenu.add_separator()
+    helpMenu.add_command(label="Glossary", command=on_help_glossary)
     helpMenu.add_separator()
     helpMenu.add_command(label="View Log File", command=on_show_log)
     menuBar.add_cascade(label="Help", menu=helpMenu)
@@ -2130,7 +2203,7 @@ def renderMainWindow():
 
     # Add each item to 'frame.interior' NOT mainWindow for scrollbars
     for i in range(len(titleList)):
-      addItemToListDisplay(i, 'add')
+        addItemToListDisplay(i, 'add')
 
     # Set save menu item and window title
     onListHasChanged(listHasChanged)
@@ -2231,7 +2304,7 @@ def checkInstall(subfolder, ext):
         appInstVersion = '0'
 
     # if installed return true/false and app installed version
-    return (isInstalled, str(appInstVersion))
+    return isInstalled, str(appInstVersion)
 
 
 
@@ -2244,7 +2317,7 @@ if __name__ == "__main__":
     # Main Env Vars
     appName = 'Auto Install'
     procName = 'auto-install'
-    appVersion = '1.0 beta'
+    appVersion = '1.0 Beta'
     userHome = os.getenv('USERPROFILE')
     timeStamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     dateStamp = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -2289,9 +2362,9 @@ if __name__ == "__main__":
     localBackupsDmgTmp = os.path.join(localDownloads, appName.replace(' ', '')+'_'+dateStamp+'.temp.dmg')
     # localBackupsDmg = os.path.join(userHome, 'Downloads', appName.replace(' ', '')+'_'+dateStamp+'.dmg')
     localBackupDmgVolName = (appName+" - Backup "+dateStamp).replace(' ', '\ ')
-    projectUrl = 'https://www.thefanclub.co.za/how-to/mac-after-install/'
     '''
-    projectGithubUrl = 'https://github.com/thefanclub/mac-after-install/'  # TODO
+    genDocSite = 'docs.genesys.com/Documentation/System'
+    genGlossary = 'docs.genesys.com/Glossary'
 
     # App Vars
     connectionStatus = False
@@ -2308,25 +2381,26 @@ if __name__ == "__main__":
     # Set Application Title
     # changeApplicationName(appName)
 
-    # Lock File, TODO for Windows
     '''
+    Not needed
+    # Lock File
     try:
-        lockFile = open(lockFilePath,'w')
-        # Try to aquire lock
-        fcntl.flock(lockFile, fcntl.LOCK_EX|fcntl.LOCK_NB)
+        lockFile = open(lockFilePath, 'w')
+        # Try to acquire lock
+        fcntl.flock(lockFile, fcntl.LOCK_EX | fcntl.LOCK_NB)
         # File has not been locked before
         fileIsLocked = False
     except:
         # File is already locked
         fileIsLocked = True
-    '''
-    '''
+
     if fileIsLocked:
       sys.exit('[Notice] '+procName+' instance already running or you do not have admin rights to run the program.')
 
     lockFile.write('%d\n'%os.getpid())
     lockFile.flush()
     '''
+
     # Start Log file after use appendToLog
     writeToFile(logFile, ('[' + timeStamp + '] ' + appName + ' ' + appVersion + ' - Started' + '\n'), 'w')
     debugPrint("[Notice] Log file created")
