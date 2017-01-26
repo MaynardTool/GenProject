@@ -2,115 +2,108 @@
 <AutoInstall>
 	<Software>
 		<Item>
-			<Title>ConfigDBServer</Title>
-			<Description>Configuration DB Server</Description>
-			<AppFile>multiserver.exe</AppFile>
-			<URL>C:\Users\Administrator\Downloads\IP_DBServer64_8130111b1_ENU_windows.zip</URL>
-			<Version>8.1.300.03</Version>
-		</Item>
-		<Item>
 			<Title>ConfigServer</Title>
-			<Description>Singletenant Configuration Server</Description>
+			<Description>Multi-Tenant Configuration Server</Description>
 			<AppFile>confserv.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\configuration_layer\configserver\single\windows_x64</URL>
-			<Version>8.1.300.27</Version>
+			<URL>\\192.168.20.216\edungog\IP_ConfigServer64_8510100b1_ENU_windows.zip</URL>
+			<Version>8.5.100.25</Version>
 		</Item>
 		<Item>
 			<Title>ConfigManager</Title>
 			<Description>Configuration Manager</Description>
 			<AppFile>sce.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\configuration_layer_interfaces\configmanager\windows</URL>
-			<Version>8.1.100.06</Version>
-		</Item>
-		<Item>
-			<Title>CFGWizards</Title>
-			<Description>Wizard Manager</Description>
-			<AppFile>WizardManager.dll</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\configuration_wizard</URL>
-			<Version>8.0.200.22</Version>
+			<URL>\\192.168.20.216\edungog\IP_ConfigManager_8110007b1_ENU_windows.zip</URL>
+			<Version>8.1.100.7</Version>
 		</Item>
 		<Item>
 			<Title>GA</Title>
 			<Description>Genesys Administrator</Description>
 			<AppFile>Web.config</AppFile>
-			<URL>C:\Users\Administrator\Downloads\IP_MFWebMan64_8130802b1_ENU_windows.zip</URL>
+			<URL>\\192.168.20.216\edungog\IP_MFWebMan64_8130802b1_ENU_windows.zip</URL>
 			<Version>8.1.308.02</Version>
 		</Item>
 		<Item>
 			<Title>LCA</Title>
 			<Description>Local Control Agent</Description>
 			<AppFile>lca.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\lca\windows_x64</URL>
-			<Version>8.1.300.14</Version>
+			<URL>\\192.168.20.216\edungog\IP_LCA64_8510019b1_ENU_windows.zip</URL>
+			<Version>8.5.100.19</Version>
 		</Item>
 		<Item>
-			<Title>LogDBServer</Title>
-			<Description>Log DB Serveer</Description>
-			<AppFile>multiserver.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\services_layer\dbserver\windows_x64</URL>
-			<Version>8.1.301.04</Version>
+			<Title>GAX</Title>
+			<Description>Genesys Administrator Extension</Description>
+			<AppFile>gax_startup.bat</AppFile>
+			<URL>\\192.168.20.216\edungog\IP_GAX64_8523003b1_ENU_windows.zip</URL>
+			<Version>8.5.230.03</Version>
+		</Item>
+		<Item>
+			<Title>LRM</Title>
+			<Description>License Reporting Manager</Description>
+			<AppFile>startServer.bat</AppFile>
+			<URL>\\192.168.20.216\edungog\IP_LicRepoMngr64_8500007b1_ENU_windows.zip</URL>
+			<Version>8.5.000.07</Version>
 		</Item>
 		<Item>
 			<Title>MessageServer</Title>
 			<Description>Message Server</Description>
 			<AppFile>MessageServer.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\message_server\windows_x64</URL>
-			<Version>8.1.300.11</Version>
+			<URL>\\192.168.20.216\edungog\IP_MsgServer64_8510011b1_ENU_windows.zip</URL>
+			<Version>8.5.100.11</Version>
 		</Item>
 		<Item>
 			<Title>SCS</Title>
 			<Description>Solution Control Server</Description>
 			<AppFile>scs.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\solution_control_server\windows_x64</URL>
-			<Version>8.1.300.14</Version>
+			<URL>\\192.168.20.216\edungog\IP_SCServer64_8510021b1_ENU_windows.zip</URL>
+			<Version>8.5.100.21</Version>
 		</Item>
 		<Item>
-			<Title>SCI</Title>
-			<Description>Solution Control Interface</Description>
-			<AppFile>sci.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\management_layer\solution_control_interface\windows</URL>
-			<Version>8.0.300.17</Version>
+			<Title>DBServer</Title>
+			<Description>DB Server</Description>
+			<AppFile>multiserver.exe</AppFile>
+			<URL>C:\Users\Administrator\Desktop\Installers\DVD\media_layer\SIPServer\ip</URL>
+			<Version>8.1.300.05</Version>
 		</Item>
 		<Item>
 			<Title>ChicagoSIPServer</Title>
 			<Description>SIP Server</Description>
 			<AppFile>sip_server.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\media_layer\SIPServer\ip</URL>
-			<Version>8.1.102.40</Version>
+			<URL>\\192.168.20.216\edungog\IP_TSrvSIP64_8110255b1_ENU_windows.zip</URL>
+			<Version>8.1.102.55</Version>
 		</Item>
 		<Item>
-			<Title>MilanSIPServer</Title>
-			<Description>SIP Server</Description>
-			<AppFile>sip_server.exe</AppFile>
-			<URL>C:\Users\Administrator\Desktop\Installers\DVD\media_layer\SIPServer\ip</URL>
-			<Version>8.1.102.40</Version>
-		</Item>
-		<Item>
-			<Title>IWS</Title>
-			<Description>Interaction Workspace</Description>
+			<Title>WDE</Title>
+			<Description>Workspace Desktop Edition</Description>
 			<AppFile>InteractionWorkspace.exe</AppFile>
-			<URL>C:\Users\Administrator\Downloads\IP_DBServer64_8130111b1_ENU_windows.zip</URL>
-			<Version>8.1.401.64</Version>
+			<URL>\\192.168.20.216\edungog\IP_IntWorkspace_8511612b1_ENU_windows.zip</URL>
+			<Version>8.5.116.12</Version>
 		</Item>
 		<Item>
 			<Title>SIPEndpoint</Title>
-			<Description>IWS SIP Endpoint</Description>
-			<AppFile>C:\Program Files\GCTI\IWS\InteractionWorkspaceSIPEndpoint\InteractionWorkspaceSIPEndpoint.exe</AppFile>
-			<URL>C:\Users\Administrator\Downloads\IP_IntWSpaceSIPEp_8020404b1_ENU_windows.zip</URL>
-			<Version>8.0.204.04</Version>
+			<Description>Workspace SIP Endpoint</Description>
+			<AppFile>C:\Program Files\GCTI\WDE\InteractionWorkspaceSIPEndpoint\InteractionWorkspaceSIPEndpoint.exe</AppFile>
+			<URL>\\192.168.20.216\edungog\IP_IntWSpaceSIPEp_8511103b1_ENU_windows.zip</URL>
+			<Version>8.5.111.03</Version>
 		</Item>
 		<Item>
 			<Title>RoutingStatServer</Title>
-			<Description>Stat Server</Description>
+			<Description>Routing Stat Server</Description>
 			<AppFile>statserv.exe</AppFile>
-			<URL>C:\Users\Administrator\Downloads\IP_StatServer64_8120056b1_ENU_windows.zip</URL>
-			<Version>8.1.200.56</Version>
+			<URL>\\192.168.20.216\edungog\IP_StatServer64_8510509b1_ENU_windows.zip</URL>
+			<Version>8.5.105.09</Version>
+		</Item>
+		<Item>
+			<Title>ReportingStatServer</Title>
+			<Description>Reporting Stat Server</Description>
+			<AppFile>statserv.exe</AppFile>
+			<URL>\\192.168.20.216\edungog\IP_StatServer64_8510509b1_ENU_windows.zip</URL>
+			<Version>8.5.105.09</Version>
 		</Item>
 		<Item>
 			<Title>URS</Title>
 			<Description>Universal Routing Server</Description>
 			<AppFile>ur_server.exe</AppFile>
-			<URL>C:\Users\Administrator\Downloads\IP_URServer64_8130035b1_ENU_windows.zip</URL>
+			<URL>\\192.168.20.216\edungog\IP_URServer64_8140032b1_ENU_windows.zip</URL>
 			<Version>8.1.300.35</Version>
 		</Item>
 		<Item>
@@ -194,8 +187,8 @@
 			<Title>ChatServer</Title>
 			<Description>Chat Server</Description>
 			<AppFile>ChatServer.exe</AppFile>
-			<URL>C:\Users\Administrator\Downloads\IP_eSChatSrv64_8100141b1_ENU_windows.zip</URL>
-			<Version>8.1.001.41</Version>
+			<URL>\\192.168.20.216\edungog\IP_eSChatSrv64_8510610b1_ENU_windows.zip</URL>
+			<Version>8.5.106.10</Version>
 		</Item>
 		<Item>
 			<Title>ClassServer</Title>

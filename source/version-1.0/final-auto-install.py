@@ -22,14 +22,10 @@ from ttk import *
 import tkMessageBox
 import tkFileDialog
 from ScrolledText import *
-import math
 import locale
 import plistlib
 import zipfile
-import Queue
-# from Foundation import NSBundle
 from ConfigParser import SafeConfigParser
-import trace
 import _winreg
 import errno
 from cfgparse.compat import ConfigParser
@@ -97,18 +93,18 @@ class VerticalScrolledFrame(Frame):
 
 
 # Genesys related
-def createAppFromCfgServer(cfg_host):
-    cfg_server = CServer((cfg_host, '2020', 'default', 'password'))
+def createAppFromCfgServer(hostname, app_name, port, version, app_type):
+    cfg_server = CServer((hostname, '2020', 'default', 'password'))
     cfg_server.Open()
     SetDefaultServer("ConfigServer", cfg_server)
     cfg_app = CfgApplication()
-    cfg_app.name = 'MessageServer_Backup'  # to be taken from the list
-    cfg_app.version = '8.5.1'  # call get_version function
+    cfg_app.name = app_name  # retrieved from the list
+    cfg_app.version = version  # retrieved from ini file
     cfg_app.serverInfo = CfgServerInfo()
-    cfg_host = CfgHost('marcelo')  # to be taken from the user's machine
+    cfg_host = CfgHost(hostname)  # retrieved from the user's machine
     cfg_app.serverInfo.hostDBID = cfg_host.DBID
-    cfg_app.serverInfo.port = '8541'  # can be anything
-    cfg_app.type = CfgAppType.CFGMessageServer.val  # to be taken from the list or check common_enum.py CfgAppType
+    cfg_app.serverInfo.port = port  # retrieved from ini file
+    cfg_app.type = int(app_type)  # retrieved from ini file
     cfg_app.workDirectory = "."
     cfg_app.commandLine = "."
     cfg_app.commandLineArguments = '.'
@@ -231,11 +227,11 @@ def deleteFile(filepath, filename):
         if os.path.exists(filepath):
           os.remove(filepath)
 
-        debugPrint("[Notice] %s Deleted" % filename )
-        appendToLog("[Notice] %s Deleted" % filename )
+        debugPrint("[Notice] %s Deleted" % filename)
+        appendToLog("[Notice] %s Deleted" % filename)
     except:
-        debugPrint("[Error] Could not delete %s" % filename )
-        appendToLog("[Error] Could not delete %s" % filename )
+        debugPrint("[Error] Could not delete %s" % filename)
+        appendToLog("[Error] Could not delete %s" % filename)
 
 
 def downloadTxtFile(url, localdir): # Not needed
@@ -254,7 +250,7 @@ def downloadTxtFile(url, localdir): # Not needed
 
 
 # NEED TO REFACTOR THIS USING search_zip and extract_files FUNCTIONS
-def downloadFile(url, localdir, item, proginc):
+def downloadFile1(url, localdir, item, proginc):
     # Get Current HeaderProgress
     currentHeaderProgress = headerProgPercent.get()
     # Create dir if does not exist
@@ -323,6 +319,53 @@ def downloadFile(url, localdir, item, proginc):
     except:
       debugPrint("[Error] Cannot download file "+url)
       appendToLog("[Error] Cannot download file "+url)
+
+
+# Working!!!
+def downloadFile(url, localdir, item, proginc):
+    # Get Current HeaderProgress
+    currentHeaderProgress = headerProgPercent.get()
+    # Create dir if does not exist
+    if not os.path.exists(localdir):
+        os.mkdir(localdir)
+
+    # Download to localDir
+    sourceIP = open(url, 'rb')
+    outFileName = url.split('\\')[-1]
+    appendToLog('Outfilename for download is %s' % outFileName)
+    outFile = os.path.join(localdir, outFileName)
+    appendToLog('Outfile for download is %s' % outFile)
+
+    localFile = open(outFile, 'wb')
+    appendToLog('URL is %s' % url)
+
+    totalSize = os.stat(url).st_size
+    debugPrint("[Notice] Download file size : {}".format(totalSize))
+    appendToLog("[Notice] Download file size : {}".format(totalSize))
+
+    totalDownloaded = 0
+    length = 16 * 1024
+
+    while True:
+        buf = sourceIP.read(length)
+        if not buf:
+            break
+        totalDownloaded += len(buf)
+        localFile.write(buf)
+
+        percent = float(totalDownloaded) / totalSize
+        percent = round(percent * 100, 2)
+        # sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\r" % (totalDownloaded, totalSize, percent))
+        progress = round(percent) / 2
+
+        itemProgressPercent[item].set(progress)
+        headerProgPercent.set(setHeaderProgress(item, proginc, currentHeaderProgress))
+        headerProgLabelTxt.set(
+            "Downloading " + titleList[item] + " ... " + str(humanSize(totalDownloaded)) + " / " + str(
+                humanSize(totalSize)))
+
+    sourceIP.close()
+    localFile.close()
 
 
 def readFile(filepath):
@@ -467,7 +510,7 @@ def refreshGui(widget):
      widget.update_idletasks()
 
 
-#THIS IS WORKING,  CONFIRMED NO PROBLEM WITH THIS FUNCTION#
+# THIS IS WORKING,  CONFIRMED NO PROBLEM WITH THIS FUNCTION#
 def extract_files(fname, outfile, item, proginc):
     currentHeaderProgress = headerProgPercent.get()
     # full path of zip file
@@ -514,6 +557,80 @@ def get_exitcode_stdout_stderr_zip_dvd(cmd):
         debugPrint(basherror)
         appendToLog(basherror)
         return basherror
+
+
+# Need to include you in configureOtherApp function
+def configureCS(item, hostname, path):
+    # Modify 'Database', 'ServerName' from INI file with titleList[listItem]
+    appendToLog('[Notice] Modifying settings in INI file: %s' % path)
+    appendToLog('Your hostname is: %s' % hostname)
+    appendToLog('[Notice] Modifying hostname of %s' % path)
+    writeConfig(path, 'Database', 'ServerName', hostname)
+    appendToLog('[Notice] Successfully modified hostname of %s' % path)
+
+    # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+    config_installpath = os.path.join(installationDir, item)
+    appendToLog('Config installation path: %s' % config_installpath)
+    appendToLog('[Notice] Modifying installation path of %s' % path)
+    writeConfig(path, 'IPCommon', 'InstallPath', config_installpath)
+    appendToLog('[Notice] Successfully modified installation path of %s' % path)
+
+    # Download
+    appendToLog('[Notice] Successfully modified installation path of %s' % path)
+    headerProgLabelTxt.set("Downloading " + item + " ...")
+    debugPrint("[Notice] Download started for %s" % item)
+    appendToLog("[Notice] Download started for %s" % item)
+
+    return
+
+
+# Need to refactor this so that it can also handle ConfigServer, GA, LCA, GAX, etc
+def configureOtherApp(path, hostname, item):
+    # Modify 'ConfigServer', 'Host' from INI file with titleList[listItem]
+    appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
+    appendToLog('Your hostname is: %s' % hostname)
+    appendToLog('[Notice] Modifying hostname of %s' % path)
+    writeConfig(path, 'ConfigServer', 'host', hostname)
+    appendToLog('[Notice] Successfully modified hostname of %s' % path)
+
+    # Modify 'ConfigServer', 'Application Name' from INI file with titleList[listItem]
+    appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
+    appendToLog('The application name is: %s' % item)
+    appendToLog('[Notice] Modifying Application Name of %s' % path)
+    writeConfig(path, 'ConfigServer', 'ApplicationName', item)
+    appendToLog('[Notice] Successfully modified hostname of %s' % path)
+
+    # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+    config_installpath = os.path.join(installationDir, item)
+    appendToLog('Config installation path: %s' % config_installpath)
+    appendToLog('[Notice] Modifying installation path of %s' % path)
+    writeConfig(path, 'IPCommon', 'InstallPath', config_installpath)
+    appendToLog('[Notice] Successfully modified installation path of %s' % path)
+
+    # ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
+    # config_installpath = os.path.join(installationDir, titleList[listItem])
+
+    if item in ('SCS', 'ChicagoSIPServer'):
+        # Modify 'License', 'Host' from INI file with titleList[listItem]
+        appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
+        appendToLog('Your hostname is: %s' % hostname)
+        appendToLog('[Notice] Modifying license hostname of %s' % path)
+        writeConfig(path, 'License', 'host', hostname)
+        appendToLog('[Notice] Successfully modified hostname of %s' % path)
+
+    # Create Application Object in Config Server
+    appendToLog('[Notice] Creating %s application from Config Server' % item)
+    default_port = readConfig(path, 'ServerInfo', 'Port')
+    app_version = readConfig(path, 'ServerInfo', 'Version')
+    object_type = readConfig(path, 'ServerInfo', 'CFGAppType')
+    createAppFromCfgServer(hostname, item, default_port, app_version, object_type)
+
+    # Download
+    headerProgLabelTxt.set("Downloading " + item + " ...")
+    debugPrint("[Notice] Download started for %s" % item)
+    appendToLog("[Notice] Download started for %s" % item)
+
+    return
 
 
 def on_install_button_active(button, model, selectcount):
@@ -571,93 +688,126 @@ def on_install_button_active(button, model, selectcount):
             itemCheckBox[listItem].focus()
 
             # Get filename
-            outFileName = urlList[listItem].split('\\')[-1]  # IP_ConfigServerMT64_8130027b1_ENU_windows.zip
+            outFileName = urlList[listItem].split('\\')[-1]  # IP_eSChatSrv64_8510610b1_ENU_windows.zip
+            appendToLog('Outfilename during install is %s' % outFileName)
             appendToLog('Outfilename: %s' % outFileName)
             outFileExt = fileExtension(outFileName)  # .zip
             appendToLog('Outfileext: %s' % outFileExt)
-            outFile = os.path.join(appsFolder, titleList[listItem])
+            outFile = os.path.join(appsFolder, titleList[
+                listItem])  # C:\Users\Administrator\Downloads\Genesys\ChatServer
             appendToLog('Outfile: %s' % outFile)
 
             # INI file i.e. C:\Users\Administrator\Downloads\INI\IxnServer\genesys_silent.ini
             ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
 
-            #Modify Modify 'ConfigServer', 'Host' from INI file with titleList[listItem]
-            appendToLog('[Notice] Modifying settings in INI file: %s' % ini)
-            hname = platform.uname()[1]  # hostname
-            appendToLog('Your hostname is: %s' %hname)
-            appendToLog('[Notice] Modifying hostname of %s' %ini)
-            writeConfig(ini, 'ConfigServer', 'host', hname)
-            appendToLog('[Notice] Successfully modified hostname of %s' %ini)
-
-            # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
-            config_installpath = os.path.join(installationDir, titleList[listItem])
-            appendToLog('Config installation path: %s' %config_installpath)
-            appendToLog('[Notice] Modifying installation path of %s' %ini)
-            writeConfig(ini, 'IPCommon', 'InstallPath', config_installpath)
-            appendToLog('[Notice] Successfully modified installation path of %s' %ini)
-
-            # ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
-            # config_installpath = os.path.join(installationDir, titleList[listItem])
-
-            # First, create Application from Config Server
-            appendToLog('[Notice] Creating %s application from Config Server' % titleList[listItem])
-            createAppFromCfgServer(hname)
-
-            # for zip files, extract first
-            if outFileName:
-                if outFileExt.lower() == 'zip':
-                    try:
-                        headerProgLabelTxt.set("Extracting " + titleList[listItem] + " ...")
-                        debugPrint("[Notice] Extract started for %s" % titleList[listItem])
-                        appendToLog("[Notice] Extract started for %s" % titleList[listItem])
-                        extract_files(outFileName, outFile, listItem, progInc)
-                        debugPrint("[Notice] Extracted %s" % outFile)
-                        appendToLog("[Notice] Extracted %s" % outFile)
-                    except:
-                        debugPrint("[Error] Could not extract %s" % outFileName)
-                        appendToLog("[Error] Could not extract %s" % outFileName)
-                        installError = "[Error] Could not extract %s" % outFileName
-
-                    # If installation folder exists
-                    if os.path.exists(outFile):
-                        headerProgLabelTxt.set(updateText + " " + titleList[listItem] + " ...")
-                        # Applications Install folder path
-                        appFilePath = os.path.join(outFile, 'ip')
-                        # Change directory to execute setup.exe
-                        # os.chdir(appFilePath), test
-                        # appendToLog('[Notice] Current directory is %s' % os.getcwd())
-                        try:
-                            appendToLog('[Notice] Executing setup command ...')
-                            # ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
-                            appendToLog('[Notice] Starting to install %s using  - %s ...' % (titleList[listItem], ini))
-                            # cmd = '.\setup.exe /s /z"-s %s -sl ./genesys_install_result.log"' % ini, test
-                            cmd = '%s\setup.exe /s /z"-s %s -sl %s\genesys_install_result.log"' % (appFilePath, ini, appFilePath)
-                            appendToLog('[Notice] Command is %s ' % cmd)
-                            get_exitcode_stdout_stderr_zip_dvd(cmd)
-                        except:
-                            debugPrint('[Error] Installation of %s not successful.' % titleList[listItem])
-                            appendToLog('[[Error] Installation of %s not successful.' % titleList[listItem])
-                            installError = '[Error] Installation of %s not successful.' % titleList[listItem]
-                # for DVD, install directly
-                else:
-                    headerProgLabelTxt.set("Installing CD/DVD version of " + titleList[listItem] + " ...")
-                    appDVDPath = urlList[listItem]
-                    try:
-                        appendToLog('[Notice] Executing setup command ...')
-                        appendToLog('[Notice] Starting to install %s using  - %s ...' % (titleList[listItem], ini))
-                        # Change directory to execute setup.exe
-                        # os.chdir(appDVDPath)
-                        cmd = '%s\setup.exe /s /z"-s %s -sl %s\genesys_install_result.log"' % (appDVDPath, ini, appDVDPath)
-                        appendToLog('[Notice] Command is %s ' % cmd)
-                        get_exitcode_stdout_stderr_zip_dvd(cmd)
-                    except:
-                        debugPrint('[Error] Installation of %s not successful.' % titleList[listItem])
-                        appendToLog('[[Error] Installation of %s not successful.' % titleList[listItem])
-                        installError = '[Error] Installation of %s not successful.' % titleList[listItem]
+            # Hostname
+            hname = platform.uname()[1]
+            # Need to refactor this all by having their own function
+            if titleList[listItem] == 'ConfigServer':
+                # For ConfigServer only
+                configureCS(titleList[listItem], hname, ini)
+                # Download IP
+                downloadFile(urlList[listItem], localDownloads, listItem, progInc)
+                # If successfully downloaded
+                isDownloaded = os.path.join(localDownloads, outFileName)
+                if os.path.exists(isDownloaded):
+                    debugPrint("[Notice] Download successful")
+            # Need to include you in configureOtherApp function
+            elif titleList[listItem] in ('GA', 'ConfigManager', 'LCA', 'GAX',  'SIPEndpoint'):
+                # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+                config_installpath = os.path.join(installationDir, titleList[listItem])
+                appendToLog('Config installation path: %s' % config_installpath)
+                appendToLog('[Notice] Modifying installation path of %s' % ini)
+                writeConfig(ini, 'IPCommon', 'InstallPath', config_installpath)
+                appendToLog('[Notice] Successfully modified installation path of %s' % ini)
+                # Download IP
+                headerProgLabelTxt.set("Downloading " + titleList[listItem] + " ...")
+                debugPrint("[Notice] Download started for %s" % titleList[listItem])
+                appendToLog("[Notice] Download started for %s" % titleList[listItem])
+                ''' testing
+                downloadFile(urlList[listItem], localDownloads, listItem, progInc)
+                # If successfully downloaded
+                isDownloaded = os.path.join(localDownloads, outFileName)
+                if os.path.exists(isDownloaded):
+                    debugPrint("[Notice] Download successful")
+                '''
+            elif titleList[listItem] == 'WDE':
+                # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+                config_installpath = os.path.join(installationDir, titleList[listItem])
+                appendToLog('Config installation path: %s' % config_installpath)
+                appendToLog('[Notice] Modifying installation path of %s' % ini)
+                writeConfig(ini, 'IPCommon', 'InstallPath', config_installpath)
+                appendToLog('[Notice] Successfully modified installation path of %s' % ini)
+                # Create Application Object in Config Server
+                appendToLog('[Notice] Creating %s application from Config Server' % item)
+                app_version = readConfig(ini, 'ServerInfo', 'Version')
+                object_type = readConfig(ini, 'ServerInfo', 'CFGAppType')
+                createAppFromCfgServer(hname, titleList[listItem], '', app_version, object_type)
+                # Download IP
+                headerProgLabelTxt.set("Downloading " + titleList[listItem] + " ...")
+                debugPrint("[Notice] Download started for %s" % titleList[listItem])
+                appendToLog("[Notice] Download started for %s" % titleList[listItem])
+                ''' testing
+                downloadFile(urlList[listItem], localDownloads, listItem, progInc)
+                # If successfully downloaded
+                isDownloaded = os.path.join(localDownloads, outFileName)
+                if os.path.exists(isDownloaded):
+                    debugPrint("[Notice] Download successful")
+                '''
             else:
-                debugPrint("[Error] No ZIP/DVD file for %s" % titleList[listItem])
-                appendToLog("[Error] No ZIP/DVD file for %s" % titleList[listItem])
-                installError = "[Error] No ZIP/DVD file for " + titleList[listItem]
+                # For all other app
+                configureOtherApp(ini, hname, titleList[listItem])
+                # Download IP
+                ''' testing
+                downloadFile(urlList[listItem], localDownloads, listItem, progInc)
+                # If successfully downloaded
+                isDownloaded = os.path.join(localDownloads, outFileName)
+                if os.path.exists(isDownloaded):
+                    debugPrint("[Notice] Download successful")
+                '''
+            ''' testing
+            if outFileExt.lower() in ('bz', 'tgz', 'tar', 'gz', 'bz2', 'zip'):
+                # TAR BZ GZ ZIP Files
+                try:
+                    # Extract files
+                    headerProgLabelTxt.set("Extracting " + outFileName + " ...")
+                    if outFileExt.lower() == 'zip':
+                        extract_files(outFileName, outFile, listItem, progInc)
+                        # If successfully extracted
+                        if os.path.exists(outFile):
+                            debugPrint("[Notice] Extracted %s" % outFile)
+                            appendToLog("[Notice] Extracted %s" % outFile)
+                    else:
+                        debugPrint("[Error] File extension not supported on Windows - %s" % outFileName)
+                        appendToLog("[Error] File extension not supported on Windows - %s" % outFileName)
+                        installError = "[Error] File extension not supported on Windows - %s" % outFileName
+                except:
+                    debugPrint("[Error] Could not extract to %s" % outFile)
+                    appendToLog("[Error] Could not extract to %s" % outFile)
+                    installError = "[Error] Could not extract to %s" % outFile
+                    deleteFile(outFile, outFileName)
+            '''
+            # If IP exists, install it
+            if os.path.exists(outFile):
+                headerProgLabelTxt.set(updateText + " " + titleList[listItem] + " ...")
+                # setup.ini folder path
+                appFilePath = os.path.join(outFile, 'ip')
+                # Change directory to execute setup.exe
+                # os.chdir(appFilePath), test
+                # appendToLog('[Notice] Current directory is %s' % os.getcwd())
+                try:
+                    appendToLog('[Notice] Executing setup command ...')
+                    # ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
+                    appendToLog('[Notice] Starting to install %s using  - %s ...' % (titleList[listItem], ini))
+                    # cmd = '.\setup.exe /s /z"-s %s -sl ./genesys_install_result.log"' % ini, test
+                    cmd = '%s\setup.exe /s /z"-s %s -sl %s\genesys_install_result.log"' % (appFilePath, ini, appFilePath)
+                    appendToLog('[Notice] Command is %s ' % cmd)
+                    get_exitcode_stdout_stderr_zip_dvd(cmd)
+                except:
+                    debugPrint('[Error] Installation of %s not successful.' % titleList[listItem])
+                    appendToLog('[[Error] Installation of %s not successful.' % titleList[listItem])
+                    installError = '[Error] Installation of %s not successful.' % titleList[listItem]
+
 
             itemProgressPercent[listItem].set(90)
             headerProgPercent.set(setHeaderProgress(listItem, progInc, currentHeaderProgress))
@@ -760,7 +910,7 @@ def on_install_thread():
     for listItem in range(itemCount):
       # Check which items are selected use get to get VarInt variable instance value
       itemSelected = checkItem[listItem].get()
-      if itemSelected == 1 and installStateList[listItem] != 'removed' :
+      if itemSelected == 1 and installStateList[listItem] != 'removed':
         itemSelectCount = itemSelectCount + 1
         appendToLog('Itenselectcount: %s' %itemSelectCount)
 
@@ -1173,9 +1323,9 @@ def readConfig(configfilepath, section, key):
     try:
         config.read(configfilepath)
         # Get product GUID for un-installation process
-        appendToLog('Retrieving product GUID of %s ...' % configfilepath)
+        appendToLog('Retrieving section and key of %s ...' % configfilepath)
         value = config.get(section, key)
-        appendToLog('[Notice] Successfully retrieved product GUID - %s' % value)
+        appendToLog('[Notice] Successfully retrieved - %s' % value)
         return value
     except:
         debugPrint("[Error] Cannot read config : [%s] %s" % (section, key))
@@ -2322,7 +2472,8 @@ if __name__ == "__main__":
     timeStamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     dateStamp = datetime.datetime.now().strftime("%Y-%m-%d")
     installDir = os.getcwd()
-    installationDir = os.path.join(os.environ['PROGRAMFILES'], 'GCTI')
+    # installationDir = os.path.join(os.environ['PROGRAMFILES'], 'GCTI')
+    installationDir = os.path.join(os.environ['PROGRAMW6432'], 'GCTI')  # I am using 32bit Python
     localDownloads = os.path.join(userHome, 'Downloads')
     appsFolder = os.path.join(localDownloads, 'Genesys')
     # appsFolder = os.path.join(os.environ['PROGRAMFILES(X86)']) # for testing purpose
