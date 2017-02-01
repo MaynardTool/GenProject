@@ -576,7 +576,6 @@ def configureCS(item, hostname, path):
     appendToLog('[Notice] Successfully modified installation path of %s' % path)
 
     # Download
-    appendToLog('[Notice] Successfully modified installation path of %s' % path)
     headerProgLabelTxt.set("Downloading " + item + " ...")
     debugPrint("[Notice] Download started for %s" % item)
     appendToLog("[Notice] Download started for %s" % item)
@@ -584,51 +583,82 @@ def configureCS(item, hostname, path):
     return
 
 
-# Need to refactor this so that it can also handle ConfigServer, GA, LCA, GAX, etc
+# Functions to cater configuration of application with their common installation flow
 def configureOtherApp(path, hostname, item):
-    # Modify 'ConfigServer', 'Host' from INI file with titleList[listItem]
-    appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
-    appendToLog('Your hostname is: %s' % hostname)
-    appendToLog('[Notice] Modifying hostname of %s' % path)
-    writeConfig(path, 'ConfigServer', 'host', hostname)
-    appendToLog('[Notice] Successfully modified hostname of %s' % path)
-
-    # Modify 'ConfigServer', 'Application Name' from INI file with titleList[listItem]
-    appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
-    appendToLog('The application name is: %s' % item)
-    appendToLog('[Notice] Modifying Application Name of %s' % path)
-    writeConfig(path, 'ConfigServer', 'ApplicationName', item)
-    appendToLog('[Notice] Successfully modified hostname of %s' % path)
-
-    # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
-    config_installpath = os.path.join(installationDir, item)
-    appendToLog('Config installation path: %s' % config_installpath)
-    appendToLog('[Notice] Modifying installation path of %s' % path)
-    writeConfig(path, 'IPCommon', 'InstallPath', config_installpath)
-    appendToLog('[Notice] Successfully modified installation path of %s' % path)
-
-    # ini = os.path.join(iniFile, titleList[listItem], 'genesys_silent.ini')
-    # config_installpath = os.path.join(installationDir, titleList[listItem])
-
-    if item in ('SCS', 'ChicagoSIPServer'):
-        # Modify 'License', 'Host' from INI file with titleList[listItem]
-        appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
+    # Configure Configuration Server
+    if item == 'ConfigServer':
+        # configureCS(item, hostname, path)
+        # Modify 'Database', 'ServerName' from INI file with titleList[listItem]
+        appendToLog('[Notice] Modifying settings in INI file: %s' % path)
         appendToLog('Your hostname is: %s' % hostname)
-        appendToLog('[Notice] Modifying license hostname of %s' % path)
-        writeConfig(path, 'License', 'host', hostname)
+        appendToLog('[Notice] Modifying hostname of %s' % path)
+        writeConfig(path, 'Database', 'ServerName', hostname)
         appendToLog('[Notice] Successfully modified hostname of %s' % path)
 
-    # Create Application Object in Config Server
-    appendToLog('[Notice] Creating %s application from Config Server' % item)
-    default_port = readConfig(path, 'ServerInfo', 'Port')
-    app_version = readConfig(path, 'ServerInfo', 'Version')
-    object_type = readConfig(path, 'ServerInfo', 'CFGAppType')
-    createAppFromCfgServer(hostname, item, default_port, app_version, object_type)
+        # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+        config_installpath = os.path.join(installationDir, item)
+        appendToLog('Config installation path: %s' % config_installpath)
+        appendToLog('[Notice] Modifying installation path of %s' % path)
+        writeConfig(path, 'IPCommon', 'InstallPath', config_installpath)
+        appendToLog('[Notice] Successfully modified installation path of %s' % path)
+    # Configure app that do not need application object in Configuration Server except WDE
+    elif item in ('GA', 'ConfigManager', 'LCA', 'GAX',  'SIPEndpoint', 'Composer', 'WDE'):
+        # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+        config_installpath = os.path.join(installationDir, item)
+        appendToLog('Config installation path: %s' % config_installpath)
+        appendToLog('[Notice] Modifying installation path of %s' % path)
+        writeConfig(path, 'IPCommon', 'InstallPath', config_installpath)
+        appendToLog('[Notice] Successfully modified installation path of %s' % path)
+        if item == 'WDE':
+            # Create WDE Application Object in Config Server
+            appendToLog('[Notice] Creating %s application from Config Server' % item)
+            app_version = readConfig(path, 'ServerInfo', 'Version')
+            object_type = readConfig(path, 'ServerInfo', 'CFGAppType')
+            createAppFromCfgServer(hostname, item, '', app_version, object_type)
+    # Configure app that needs application object in Configuration Server
+    else:
+        # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+        config_installpath = os.path.join(installationDir, item)
+        appendToLog('Config installation path: %s' % config_installpath)
+        appendToLog('[Notice] Modifying installation path of %s' % path)
+        writeConfig(path, 'IPCommon', 'InstallPath', config_installpath)
+        appendToLog('[Notice] Successfully modified installation path of %s' % path)
 
-    # Download
-    headerProgLabelTxt.set("Downloading " + item + " ...")
-    debugPrint("[Notice] Download started for %s" % item)
-    appendToLog("[Notice] Download started for %s" % item)
+        # Modify 'ConfigServer', 'Host' from INI file with titleList[listItem]
+        appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
+        appendToLog('Your hostname is: %s' % hostname)
+        appendToLog('[Notice] Modifying hostname of %s' % path)
+        writeConfig(path, 'ConfigServer', 'host', hostname)
+        appendToLog('[Notice] Successfully modified hostname of %s' % path)
+
+        # Modify 'ConfigServer', 'Application Name' from INI file with titleList[listItem]
+        appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
+        appendToLog('The application name is: %s' % item)
+        appendToLog('[Notice] Modifying Application Name of %s' % path)
+        writeConfig(path, 'ConfigServer', 'ApplicationName', item)
+        appendToLog('[Notice] Successfully modified hostname of %s' % path)
+
+        # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
+        config_installpath = os.path.join(installationDir, item)
+        appendToLog('Config installation path: %s' % config_installpath)
+        appendToLog('[Notice] Modifying installation path of %s' % path)
+        writeConfig(path, 'IPCommon', 'InstallPath', config_installpath)
+        appendToLog('[Notice] Successfully modified installation path of %s' % path)
+        # Additional configuration for app that has [License] section
+        if item in ('SCS', 'ChicagoSIPServer', 'URS'):
+            # Modify 'License', 'Host' from INI file with titleList[listItem]
+            appendToLog('[Notice] Modifying settings in INI file: %s' % path)  # hname = platform.uname()[1]  # hostname
+            appendToLog('Your hostname is: %s' % hostname)
+            appendToLog('[Notice] Modifying license hostname of %s' % path)
+            writeConfig(path, 'License', 'host', hostname)
+            appendToLog('[Notice] Successfully modified hostname of %s' % path)
+
+        # Create Application Object in Config Server
+        appendToLog('[Notice] Creating %s application from Config Server' % item)
+        default_port = readConfig(path, 'ServerInfo', 'Port')
+        app_version = readConfig(path, 'ServerInfo', 'Version')
+        object_type = readConfig(path, 'ServerInfo', 'CFGAppType')
+        createAppFromCfgServer(hostname, item, default_port, app_version, object_type)
 
     return
 
@@ -702,70 +732,36 @@ def on_install_button_active(button, model, selectcount):
 
             # Hostname
             hname = platform.uname()[1]
-            # Need to refactor this all by having their own function
-            if titleList[listItem] == 'ConfigServer':
-                # For ConfigServer only
-                configureCS(titleList[listItem], hname, ini)
-                # Download IP
-                downloadFile(urlList[listItem], localDownloads, listItem, progInc)
-                # If successfully downloaded
-                isDownloaded = os.path.join(localDownloads, outFileName)
-                if os.path.exists(isDownloaded):
-                    debugPrint("[Notice] Download successful")
-            # Need to include you in configureOtherApp function
-            elif titleList[listItem] in ('GA', 'ConfigManager', 'LCA', 'GAX',  'SIPEndpoint'):
-                # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
-                config_installpath = os.path.join(installationDir, titleList[listItem])
-                appendToLog('Config installation path: %s' % config_installpath)
-                appendToLog('[Notice] Modifying installation path of %s' % ini)
-                writeConfig(ini, 'IPCommon', 'InstallPath', config_installpath)
-                appendToLog('[Notice] Successfully modified installation path of %s' % ini)
-                # Download IP
-                headerProgLabelTxt.set("Downloading " + titleList[listItem] + " ...")
-                debugPrint("[Notice] Download started for %s" % titleList[listItem])
-                appendToLog("[Notice] Download started for %s" % titleList[listItem])
-                ''' testing
-                downloadFile(urlList[listItem], localDownloads, listItem, progInc)
-                # If successfully downloaded
-                isDownloaded = os.path.join(localDownloads, outFileName)
-                if os.path.exists(isDownloaded):
-                    debugPrint("[Notice] Download successful")
-                '''
-            elif titleList[listItem] == 'WDE':
-                # Modify 'IPCommon', 'InstallPath' from INI file with titleList[listItem]
-                config_installpath = os.path.join(installationDir, titleList[listItem])
-                appendToLog('Config installation path: %s' % config_installpath)
-                appendToLog('[Notice] Modifying installation path of %s' % ini)
-                writeConfig(ini, 'IPCommon', 'InstallPath', config_installpath)
-                appendToLog('[Notice] Successfully modified installation path of %s' % ini)
-                # Create Application Object in Config Server
-                appendToLog('[Notice] Creating %s application from Config Server' % item)
-                app_version = readConfig(ini, 'ServerInfo', 'Version')
-                object_type = readConfig(ini, 'ServerInfo', 'CFGAppType')
-                createAppFromCfgServer(hname, titleList[listItem], '', app_version, object_type)
-                # Download IP
-                headerProgLabelTxt.set("Downloading " + titleList[listItem] + " ...")
-                debugPrint("[Notice] Download started for %s" % titleList[listItem])
-                appendToLog("[Notice] Download started for %s" % titleList[listItem])
-                ''' testing
-                downloadFile(urlList[listItem], localDownloads, listItem, progInc)
-                # If successfully downloaded
-                isDownloaded = os.path.join(localDownloads, outFileName)
-                if os.path.exists(isDownloaded):
-                    debugPrint("[Notice] Download successful")
-                '''
+
+            # Configure app
+            configureOtherApp(ini, hname, titleList[listItem])
+
+            '''test
+            # Download Install file
+            if outFileName:
+                try:
+                    if not os.path.exists(outFile):
+                        headerProgLabelTxt.set("Downloading " + titleList[listItem] + " ...")
+                        debugPrint("[Notice] Download started for %s" % titleList[listItem])
+                        appendToLog("[Notice] Download started for %s" % titleList[listItem])
+                        downloadFile(urlList[listItem].replace(' ', '%20'), localDownloads, listItem, progInc)
+                    else:
+                        itemProgressPercent[listItem].set(50)
+                        headerProgPercent.set(setHeaderProgress(listItem, progInc, currentHeaderProgress))
+
+                except:
+                    debugPrint("[Error] Download failed for %s" % titleList[listItem])
+                    appendToLog("[Error] Download failed for %s" % titleList[listItem])
+                    installError = "[Error] Download failed for " + titleList[listItem]
             else:
-                # For all other app
-                configureOtherApp(ini, hname, titleList[listItem])
-                # Download IP
-                ''' testing
-                downloadFile(urlList[listItem], localDownloads, listItem, progInc)
-                # If successfully downloaded
-                isDownloaded = os.path.join(localDownloads, outFileName)
-                if os.path.exists(isDownloaded):
-                    debugPrint("[Notice] Download successful")
-                '''
-            ''' testing
+                debugPrint("[Error] No download link for %s" % titleList[listItem])
+                appendToLog("[Error] No download link for %s" % titleList[listItem])
+                installError = "[Error] No download link for " + titleList[listItem]
+
+            isDownloaded = os.path.join(localDownloads, outFileName)
+            if os.path.exists(isDownloaded):
+                debugPrint("[Notice] Download successful")
+
             if outFileExt.lower() in ('bz', 'tgz', 'tar', 'gz', 'bz2', 'zip'):
                 # TAR BZ GZ ZIP Files
                 try:
@@ -787,6 +783,7 @@ def on_install_button_active(button, model, selectcount):
                     installError = "[Error] Could not extract to %s" % outFile
                     deleteFile(outFile, outFileName)
             '''
+
             # If IP exists, install it
             if os.path.exists(outFile):
                 headerProgLabelTxt.set(updateText + " " + titleList[listItem] + " ...")
@@ -807,7 +804,6 @@ def on_install_button_active(button, model, selectcount):
                     debugPrint('[Error] Installation of %s not successful.' % titleList[listItem])
                     appendToLog('[[Error] Installation of %s not successful.' % titleList[listItem])
                     installError = '[Error] Installation of %s not successful.' % titleList[listItem]
-
 
             itemProgressPercent[listItem].set(90)
             headerProgPercent.set(setHeaderProgress(listItem, progInc, currentHeaderProgress))
